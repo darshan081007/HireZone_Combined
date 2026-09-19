@@ -1,0 +1,2625 @@
+﻿
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\api\api.js =====
+
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "http://localhost:8000",
+});
+
+export default api;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\cards\AnalyticsCard.jsx =====
+
+// A consistent container for charts / analytics visualizations,
+// used across the Analytics and dashboard pages.
+const AnalyticsCard = ({ label, title, description, actions, children }) => {
+  return (
+    <section className="surface-card overflow-hidden">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-6 py-5">
+        <div>
+          {label && (
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent-600">
+              {label}
+            </p>
+          )}
+          <h2 className="mt-1 text-lg font-bold text-navy-900">{title}</h2>
+          {description && (
+            <p className="mt-1 text-sm text-navy-500">{description}</p>
+          )}
+        </div>
+
+        {actions}
+      </div>
+
+      <div className="min-h-[280px] p-5 sm:p-6">{children}</div>
+    </section>
+  );
+};
+
+export default AnalyticsCard;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\cards\HubCard.jsx =====
+
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+
+// A "portal hub" card: a category of the platform with a short set of
+// links into it. Used on the Dashboard to group related pages.
+const HubCard = ({ title, description, icon: Icon, links = [] }) => {
+  return (
+    <div className="surface-card flex h-full flex-col p-6 transition hover:shadow-[var(--shadow-card-hover)]">
+      <div className="mb-4 flex items-center gap-3">
+        {Icon && (
+          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-accent-100 text-accent-600">
+            <Icon size={20} />
+          </div>
+        )}
+        <h3 className="text-lg font-bold text-navy-900">{title}</h3>
+      </div>
+
+      <p className="mb-5 text-sm leading-6 text-navy-500">{description}</p>
+
+      <div className="mt-auto space-y-1.5">
+        {links.map((link) => (
+          <Link
+            key={link.path}
+            to={link.path}
+            className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-navy-600 transition hover:bg-accent-50 hover:text-accent-700"
+          >
+            <span>{link.label}</span>
+            <ArrowRight
+              size={15}
+              className="text-navy-300 transition group-hover:translate-x-0.5 group-hover:text-accent-600"
+            />
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default HubCard;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\cards\MetricCard.jsx =====
+
+const MetricCard = ({ icon: Icon, title, value, description, loading }) => {
+  return (
+    <div className="surface-card p-5 transition hover:shadow-[var(--shadow-card-hover)]">
+      <div className="flex items-start justify-between">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-navy-500">{title}</p>
+
+          <p className="mt-3 text-3xl font-bold tracking-tight text-navy-900">
+            {loading ? (
+              <span className="inline-block h-8 w-16 animate-pulse rounded-md bg-muted-50" />
+            ) : (
+              value
+            )}
+          </p>
+
+          {description && (
+            <p className="mt-2 text-xs text-navy-400">{description}</p>
+          )}
+        </div>
+
+        {Icon && (
+          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-accent-100 text-accent-600">
+            <Icon size={20} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MetricCard;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\charts\SectorDemandChart.jsx =====
+
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import { EmptyState } from "../ui/States";
+
+const SectorDemandChart = ({ data = [] }) => {
+  if (!data || data.length === 0) {
+    return (
+      <EmptyState
+        title="No sector data available"
+        description="Sector-skill distribution will appear here once data is returned by the backend."
+      />
+    );
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+        <CartesianGrid stroke="#E6E9F2" vertical={false} />
+        <XAxis
+          dataKey="sector"
+          tick={{ fontSize: 12, fill: "#5B6472" }}
+          axisLine={{ stroke: "#E6E9F2" }}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fontSize: 12, fill: "#5B6472" }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip
+          contentStyle={{
+            borderRadius: 12,
+            border: "1px solid #E6E9F2",
+            boxShadow: "0 8px 24px -12px rgba(15,31,61,0.18)",
+          }}
+        />
+        <Bar dataKey="count" fill="#1146D1" radius={[6, 6, 0, 0]} maxBarSize={42} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+export default SectorDemandChart;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\charts\SkillGapChart.jsx =====
+
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import { EmptyState } from "../ui/States";
+
+const SkillGapChart = ({ data = [] }) => {
+  if (!data || data.length === 0) {
+    return (
+      <EmptyState
+        title="No skill-gap data available"
+        description="A comparison of available vs. demanded skills will appear here once data is returned by the backend."
+      />
+    );
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+        <CartesianGrid stroke="#E6E9F2" vertical={false} />
+        <XAxis
+          dataKey="skill_name"
+          tick={{ fontSize: 12, fill: "#5B6472" }}
+          axisLine={{ stroke: "#E6E9F2" }}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fontSize: 12, fill: "#5B6472" }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip
+          contentStyle={{
+            borderRadius: 12,
+            border: "1px solid #E6E9F2",
+            boxShadow: "0 8px 24px -12px rgba(15,31,61,0.18)",
+          }}
+        />
+        <Bar dataKey="gap" fill="#B3413C" radius={[6, 6, 0, 0]} maxBarSize={42} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+export default SkillGapChart;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\dashboard\AnalyticsSection.jsx =====
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
+
+import {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  getTopStudentSkills,
+  getTopDemandSkills
+} from "../../services/governmentService";
+
+const AnalyticsSection = () => {
+
+  const [studentSkills, setStudentSkills] =
+    useState([]);
+
+  const [demandSkills, setDemandSkills] =
+    useState([]);
+
+  useEffect(() => {
+
+    loadCharts();
+
+  }, []);
+
+  const loadCharts = async () => {
+
+    try {
+
+      const students =
+        await getTopStudentSkills();
+
+      const recruiters =
+        await getTopDemandSkills();
+
+      setStudentSkills(
+        students.data
+      );
+
+      setDemandSkills(
+        recruiters.data
+      );
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
+  };
+
+  return (
+
+    <div className="mt-12">
+
+      <h2 className="text-3xl font-bold mb-6">
+        Analytics Hub
+      </h2>
+
+      <div className="grid grid-cols-2 gap-6">
+
+        <div className="bg-white p-5 rounded-xl shadow">
+
+          <h3 className="font-bold mb-4">
+            Top Student Skills
+          </h3>
+
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+          >
+
+            <BarChart data={studentSkills}>
+
+              <XAxis
+                dataKey="skill_name"
+              />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Bar
+                dataKey="count"
+              />
+
+            </BarChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
+        <div className="bg-white p-5 rounded-xl shadow">
+
+          <h3 className="font-bold mb-4">
+            Top Recruiter Demand
+          </h3>
+
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+          >
+
+            <BarChart data={demandSkills}>
+
+              <XAxis
+                dataKey="skill_name"
+              />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Bar
+                dataKey="count"
+              />
+
+            </BarChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+};
+
+export default AnalyticsSection;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\dashboard\AnalyticsTile.jsx =====
+
+const AnalyticsTile = ({
+  title
+}) => {
+  return (
+    <div
+      className="
+      bg-gradient-to-br
+      from-green-100
+      to-green-200
+      rounded-2xl
+      p-4
+      shadow
+      cursor-pointer
+      hover:scale-105
+      hover:shadow-xl
+      transition-all
+      duration-300
+      "
+    >
+      <h3
+        className="
+        font-semibold
+        text-lg
+        hover:text-amber-700
+        transition-colors
+        "
+      >
+        {title}
+      </h3>
+    </div>
+  );
+};
+
+export default AnalyticsTile;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\dashboard\PortalCard.jsx =====
+
+import { useNavigate } from "react-router-dom";
+
+const PortalCard = ({
+  title,
+  description,
+  route
+}) => {
+
+  const navigate = useNavigate();
+
+  return (
+    <div
+      onClick={() => navigate(route)}
+      className="
+      cursor-pointer
+      rounded-3xl
+      p-8
+      bg-gradient-to-br
+      from-green-100
+      to-green-300
+      shadow-lg
+      transition-all
+      duration-300
+      hover:-translate-y-2
+      hover:scale-105
+      hover:shadow-2xl
+      "
+    >
+      <h2
+        className="
+        text-3xl
+        font-bold
+        transition-colors
+        duration-300
+        hover:text-amber-700
+        "
+      >
+        {title}
+      </h2>
+
+      <p className="mt-4">
+        {description}
+      </p>
+    </div>
+  );
+};
+
+export default PortalCard;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\dashboard\WelcomeBanner.jsx =====
+
+const WelcomeBanner = () => {
+  return (
+    <div
+      className="
+      rounded-3xl
+      p-8
+      shadow-xl
+      text-white
+      bg-gradient-to-r
+      from-green-500
+      to-green-300
+      "
+    >
+      <h1 className="text-4xl font-bold">
+        Welcome to Government Portal
+      </h1>
+
+      <p className="mt-4 text-lg">
+        Workforce Intelligence, Skill Development,
+        Public Recruitment and National Talent Analytics.
+      </p>
+    </div>
+  );
+};
+
+export default WelcomeBanner;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\layout\DashboardLayout.jsx =====
+
+import { useState } from "react";
+import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
+
+const DashboardLayout = ({ children }) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-canvas text-navy-900">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1680px]">
+        <Sidebar
+          mobileOpen={mobileOpen}
+          onCloseMobile={() => setMobileOpen(false)}
+        />
+
+        <div className="flex min-h-screen w-full min-w-0 flex-1 flex-col">
+          <Topbar onOpenMobile={() => setMobileOpen(true)} />
+
+          <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            {children}
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardLayout;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\layout\Sidebar.jsx =====
+
+import { NavLink } from "react-router-dom";
+import { Landmark, X } from "lucide-react";
+import { navigationGroups } from "../../config/navigation";
+
+const NavItem = ({ item, onNavigate }) => {
+  const Icon = item.icon;
+
+  return (
+    <NavLink
+      to={item.path}
+      end={item.end}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+          isActive
+            ? "bg-accent-600 text-white shadow-sm shadow-accent-600/25"
+            : "text-navy-600 hover:bg-accent-50 hover:text-accent-700"
+        }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <Icon
+            size={18}
+            className={isActive ? "text-white" : "text-navy-400 group-hover:text-accent-600"}
+          />
+          <span>{item.name}</span>
+        </>
+      )}
+    </NavLink>
+  );
+};
+
+const SidebarContent = ({ onNavigate }) => (
+  <div className="flex h-full flex-col">
+    <div className="flex h-[72px] flex-none items-center gap-3 border-b border-border px-5">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-600 shadow-sm shadow-accent-600/30">
+        <Landmark size={20} className="text-white" />
+      </div>
+
+      <div className="min-w-0">
+        <p className="truncate text-[15px] font-bold leading-tight text-navy-900">
+          GovConnect
+        </p>
+        <p className="truncate text-xs text-navy-500">
+          Skill &amp; Employment Portal
+        </p>
+      </div>
+    </div>
+
+    <nav className="thin-scroll flex-1 overflow-y-auto px-3 py-5">
+      {navigationGroups.map((group) => (
+        <div key={group.label} className="mb-5 last:mb-0">
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-400">
+            {group.label}
+          </p>
+
+          <div className="space-y-1">
+            {group.items.map((item) => (
+              <NavItem key={item.path} item={item} onNavigate={onNavigate} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </nav>
+
+    <div className="flex-none border-t border-border p-4">
+      <div className="flex items-center gap-3 rounded-xl bg-muted-50 px-3 py-3">
+        <span className="h-2 w-2 flex-none rounded-full bg-emerald-500" />
+        <p className="text-xs font-medium text-navy-600">
+          Government Representative
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
+const Sidebar = ({ mobileOpen, onCloseMobile }) => {
+  return (
+    <>
+      {/* Desktop sidebar â€” fixed */}
+      <aside className="hidden w-[264px] flex-none border-r border-border bg-white lg:block">
+        <div className="fixed h-screen w-[264px]">
+          <SidebarContent />
+        </div>
+      </aside>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <button
+            aria-label="Close navigation menu"
+            className="absolute inset-0 bg-navy-950/40 backdrop-blur-[2px]"
+            onClick={onCloseMobile}
+          />
+
+          <div className="relative z-10 flex h-full w-[280px] max-w-[82vw] animate-fade-in-up flex-col bg-white shadow-xl">
+            <button
+              onClick={onCloseMobile}
+              aria-label="Close navigation menu"
+              className="absolute right-3 top-4 z-10 rounded-lg p-2 text-navy-500 hover:bg-muted-50"
+            >
+              <X size={18} />
+            </button>
+
+            <SidebarContent onNavigate={onCloseMobile} />
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Sidebar;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\layout\Topbar.jsx =====
+
+import { Menu, Landmark } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+import { flatNavigation } from "../../config/navigation";
+
+const Topbar = ({ onOpenMobile }) => {
+  const location = useLocation();
+  const current = flatNavigation.find((item) =>
+    item.end ? location.pathname === item.path : location.pathname.startsWith(item.path)
+  );
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-border bg-white/85 backdrop-blur-md">
+      <div className="flex h-[72px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+        {/* Mobile menu button */}
+        <button
+          type="button"
+          onClick={onOpenMobile}
+          aria-label="Open navigation menu"
+          className="rounded-xl border border-border-strong p-2.5 text-navy-700 lg:hidden"
+        >
+          <Menu size={19} />
+        </button>
+
+        {/* Brand â€” mobile only, sidebar already shows it on desktop */}
+        <NavLink to="/" className="flex items-center gap-2.5 lg:hidden">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-600">
+            <Landmark size={16} className="text-white" />
+          </div>
+          <span className="text-sm font-bold text-navy-900">GovConnect</span>
+        </NavLink>
+
+        {/* Current page breadcrumb */}
+        <div className="hidden min-w-0 lg:block">
+          <p className="text-xs font-medium uppercase tracking-[0.1em] text-navy-400">
+            Government Intelligence Portal
+          </p>
+          <p className="truncate text-sm font-semibold text-navy-900">
+            {current?.name ?? "Dashboard"}
+          </p>
+        </div>
+
+        <div className="ml-auto flex items-center gap-3">
+          <div className="hidden items-center gap-2 rounded-full border border-border bg-muted-50 px-3 py-1.5 sm:flex">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="text-xs font-medium text-navy-600">
+              Live data
+            </span>
+          </div>
+
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-100 text-sm font-bold text-accent-700">
+            GR
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Topbar;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\ui\Badge.jsx =====
+
+const tones = {
+  accent: "bg-accent-100 text-accent-700",
+  success: "bg-emerald-100 text-emerald-600",
+  warning: "bg-amber-100 text-amber-600",
+  danger: "bg-rose-100 text-rose-600",
+  neutral: "bg-muted-50 text-navy-600 border border-border",
+};
+
+const Badge = ({ children, tone = "neutral", className = "" }) => {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${tones[tone]} ${className}`}
+    >
+      {children}
+    </span>
+  );
+};
+
+export default Badge;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\ui\Button.jsx =====
+
+const variants = {
+  primary:
+    "bg-accent-600 text-white hover:bg-accent-700 shadow-sm shadow-accent-600/20",
+  secondary:
+    "border border-border-strong bg-white text-navy-800 hover:bg-muted-50",
+  ghost: "text-navy-600 hover:bg-muted-50",
+};
+
+const Button = ({
+  children,
+  icon: Icon,
+  variant = "primary",
+  className = "",
+  ...props
+}) => {
+  return (
+    <button
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500 focus-visible:outline-offset-2 ${variants[variant]} ${className}`}
+      {...props}
+    >
+      {Icon && <Icon size={16} />}
+      {children}
+    </button>
+  );
+};
+
+export default Button;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\ui\PageHeader.jsx =====
+
+const PageHeader = ({ eyebrow, title, description, actions, icon: Icon }) => {
+  return (
+    <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+      <div className="flex items-start gap-4">
+        {Icon && (
+          <div className="hidden h-12 w-12 flex-none items-center justify-center rounded-2xl bg-accent-100 text-accent-600 sm:flex">
+            <Icon size={22} />
+          </div>
+        )}
+
+        <div>
+          {eyebrow && (
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-accent-600">
+              {eyebrow}
+            </p>
+          )}
+
+          <h1 className="text-2xl font-bold tracking-tight text-navy-900 sm:text-3xl">
+            {title}
+          </h1>
+
+          {description && (
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-navy-500">
+              {description}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {actions && (
+        <div className="flex w-fit flex-none items-center gap-3">
+          {actions}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PageHeader;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\ui\States.jsx =====
+
+import { AlertCircle, Inbox, Loader2, RefreshCw } from "lucide-react";
+
+export const LoadingState = ({ label = "Loading data..." }) => (
+  <div className="flex flex-col items-center justify-center gap-3 py-16">
+    <Loader2 className="h-7 w-7 animate-spin text-accent-600" />
+    <p className="text-sm text-navy-500">{label}</p>
+  </div>
+);
+
+export const ErrorState = ({
+  message = "Something went wrong while loading this data.",
+  onRetry,
+}) => (
+  <div className="flex flex-col items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-6 py-10 text-center">
+    <AlertCircle className="h-7 w-7 text-rose-600" />
+    <p className="text-sm font-medium text-rose-700">{message}</p>
+    {onRetry && (
+      <button
+        onClick={onRetry}
+        className="mt-1 inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+      >
+        <RefreshCw size={15} />
+        Try again
+      </button>
+    )}
+  </div>
+);
+
+export const EmptyState = ({
+  title = "No data available",
+  description = "There's nothing to show here yet.",
+  icon: Icon = Inbox,
+}) => (
+  <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-strong bg-muted-50 px-6 py-14 text-center">
+    <Icon className="h-7 w-7 text-navy-400" />
+    <p className="text-sm font-semibold text-navy-800">{title}</p>
+    <p className="max-w-sm text-sm text-navy-500">{description}</p>
+  </div>
+);
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\components\SeedLoader.jsx =====
+
+import { useEffect, useState } from "react";
+
+const SeedLoader = () => {
+  const [stage, setStage] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStage((previousStage) => (previousStage + 1) % 4);
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex min-h-[220px] items-center justify-center bg-[#F5F1E8]">
+      <div className="relative flex h-48 w-48 flex-col items-center justify-end">
+        {/* Soil */}
+        <div className="absolute bottom-7 h-3 w-36 rounded-full bg-[#8B5E3C]" />
+
+        {/* Seed */}
+        <div
+          className={`absolute bottom-10 h-7 w-5 rounded-[60%] bg-[#5B3A29] transition-all duration-300 ${
+            stage >= 1
+              ? "translate-y-3 scale-75 opacity-0"
+              : "translate-y-0 scale-100 opacity-100"
+          }`}
+        />
+
+        {/* Stem */}
+        <div
+          className={`absolute bottom-9 w-2 origin-bottom rounded-full bg-[#3F7D3C] transition-all duration-300 ${
+            stage >= 1 ? "h-20" : "h-0"
+          }`}
+        />
+
+        {/* Left Leaf */}
+        <div
+          className={`absolute bottom-[88px] right-[82px] h-7 w-12 origin-bottom-right rounded-full rounded-br-none bg-[#5B9B4A] transition-all duration-300 ${
+            stage >= 2
+              ? "rotate-[-28deg] scale-100 opacity-100"
+              : "rotate-0 scale-0 opacity-0"
+          }`}
+        />
+
+        {/* Right Leaf */}
+        <div
+          className={`absolute bottom-[112px] left-[83px] h-7 w-12 origin-bottom-left rounded-full rounded-bl-none bg-[#78B159] transition-all duration-300 ${
+            stage >= 3
+              ? "rotate-[28deg] scale-100 opacity-100"
+              : "rotate-0 scale-0 opacity-0"
+          }`}
+        />
+
+        {/* Loading Text */}
+        <p className="absolute -bottom-2 text-sm font-medium text-[#31572C]">
+          Growing your page...
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default SeedLoader;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\config\navigation.js =====
+
+import {
+  LayoutDashboard,
+  Users,
+  Code2,
+  FolderKanban,
+  ShieldCheck,
+  BrainCircuit,
+  Building2,
+  Activity,
+  TrendingUp,
+  Trophy,
+  Briefcase,
+  Target,
+  Flame,
+  BarChart3,
+  MapPin,
+  Megaphone,
+  FileText,
+} from "lucide-react";
+
+// Single source of truth for the application's navigation. Every path
+// here corresponds to an existing route in App.jsx â€” nothing here is
+// invented or speculative.
+export const navigationGroups = [
+  {
+    label: "Overview",
+    items: [{ name: "Dashboard", path: "/", icon: LayoutDashboard, end: true }],
+  },
+  {
+    label: "Talent",
+    items: [
+      { name: "Students", path: "/students", icon: Users },
+      { name: "Skills", path: "/skills", icon: Code2 },
+      { name: "Projects", path: "/projects", icon: FolderKanban },
+      { name: "Proof of Work", path: "/proof-of-work", icon: ShieldCheck },
+      { name: "AI Evaluations", path: "/ai-evaluations", icon: BrainCircuit },
+    ],
+  },
+  {
+    label: "Recruitment",
+    items: [
+      { name: "Recruiters", path: "/recruiters", icon: Building2 },
+      { name: "Hiring Activity", path: "/hiring-activity", icon: Activity },
+      {
+        name: "Recruitment Trends",
+        path: "/recruitment-trends",
+        icon: TrendingUp,
+      },
+      { name: "Government Jobs", path: "/jobs", icon: Briefcase },
+    ],
+  },
+  {
+    label: "Skill Intelligence",
+    items: [
+      { name: "Analytics", path: "/analytics", icon: BarChart3 },
+      { name: "Skill Gap", path: "/skill-gap", icon: Target },
+      { name: "Demand Skills", path: "/demand-skills", icon: Flame },
+      { name: "Sector Strength", path: "/sectors", icon: BarChart3 },
+      {
+        name: "Low-Pursued Sectors",
+        path: "/low-pursued-sectors",
+        icon: TrendingUp,
+      },
+      {
+        name: "Regional Distribution",
+        path: "/regional-distribution",
+        icon: MapPin,
+      },
+    ],
+  },
+  {
+    label: "Programs",
+    items: [
+      { name: "Challenges", path: "/challenges", icon: Trophy },
+      { name: "Campaigns", path: "/campaigns", icon: Megaphone },
+      { name: "Reports", path: "/reports", icon: FileText },
+    ],
+  },
+];
+
+export const flatNavigation = navigationGroups.flatMap((group) => group.items);
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\AIEvaluations.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function AIEvaluations() {
+  return (
+    <PlaceholderPage
+      title="AI Evaluations"
+      description="Review AI-based assessments, evaluation results, and student performance."
+    />
+  );
+}
+
+export default AIEvaluations;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Analytics.jsx =====
+
+import { useEffect, useState } from "react";
+import { BarChart3, RefreshCw, TrendingUp, Activity } from "lucide-react";
+
+import DashboardLayout from "../components/layout/DashboardLayout";
+import PageHeader from "../components/ui/PageHeader";
+import Button from "../components/ui/Button";
+import MetricCard from "../components/cards/MetricCard";
+import AnalyticsCard from "../components/cards/AnalyticsCard";
+import SectorDemandChart from "../components/charts/SectorDemandChart";
+import SkillGapChart from "../components/charts/SkillGapChart";
+import { LoadingState } from "../components/ui/States";
+
+import { getHighestSkilledSectors, getSkillGap } from "../services/governmentService";
+
+const Analytics = () => {
+  const [sectors, setSectors] = useState([]);
+  const [skillGap, setSkillGap] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
+
+  const loadAnalytics = async () => {
+    setLoading(true);
+
+    try {
+      const sectorsData = await getHighestSkilledSectors();
+      const gapData = await getSkillGap();
+
+      setSectors(Array.isArray(sectorsData.data) ? sectorsData.data : []);
+      setSkillGap(Array.isArray(gapData.data) ? gapData.data : []);
+    } catch (error) {
+      console.error("Failed to load analytics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      <PageHeader
+        eyebrow="Data Intelligence"
+        title="Government Analytics"
+        description="Explore sector-level skill distribution and identify gaps between available skills and industry demand."
+        icon={BarChart3}
+        actions={
+          <Button variant="secondary" icon={RefreshCw} onClick={loadAnalytics}>
+            Refresh
+          </Button>
+        }
+      />
+
+      {/* Summary strip */}
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricCard icon={BarChart3} title="Sector Records" value={sectors.length} loading={loading} />
+        <MetricCard icon={Activity} title="Skill Records" value={skillGap.length} loading={loading} />
+        <MetricCard
+          icon={TrendingUp}
+          title="Data Status"
+          value={loading ? "Loading" : "Updated"}
+        />
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <AnalyticsCard
+          label="Sector Intelligence"
+          title="Highest Skilled Sectors"
+          description="Distribution of skills across different sectors."
+        >
+          {loading ? <LoadingState label="Loading sector data..." /> : <SectorDemandChart data={sectors} />}
+        </AnalyticsCard>
+
+        <AnalyticsCard
+          label="Workforce Analysis"
+          title="Skill Gap Analysis"
+          description="Comparison of available skills and required skills."
+        >
+          {loading ? <LoadingState label="Loading skill-gap data..." /> : <SkillGapChart data={skillGap} />}
+        </AnalyticsCard>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default Analytics;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Campaigns.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function Campaigns() {
+  return (
+    <PlaceholderPage
+      title="Government Campaigns"
+      description="View government campaigns, initiatives, and engagement activity."
+    />
+  );
+}
+
+export default Campaigns;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Challenges.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function Challenges() {
+  return (
+    <PlaceholderPage
+      title="Sponsored Challenges"
+      description="Explore industry-sponsored challenges and participation activity."
+    />
+  );
+}
+
+export default Challenges;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Dashboard.jsx =====
+
+import { useEffect, useState } from "react";
+import {
+  Users,
+  BriefcaseBusiness,
+  Code2,
+  Trophy,
+  Building2,
+  Megaphone,
+  GraduationCap,
+  BarChart3,
+  Target,
+  FileText,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+
+import DashboardLayout from "../components/layout/DashboardLayout";
+import PageHeader from "../components/ui/PageHeader";
+import MetricCard from "../components/cards/MetricCard";
+import HubCard from "../components/cards/HubCard";
+import { ErrorState } from "../components/ui/States";
+import { getDashboardSummary } from "../services/api";
+
+const statisticsConfig = [
+  {
+    key: "total_students",
+    title: "Students",
+    icon: Users,
+    description: "Registered students",
+  },
+  {
+    key: "total_recruiters",
+    title: "Recruiters",
+    icon: BriefcaseBusiness,
+    description: "Registered recruiters",
+  },
+  {
+    key: "total_skills",
+    title: "Skills",
+    icon: Code2,
+    description: "Available skills",
+  },
+  {
+    key: "active_challenges",
+    title: "Active Challenges",
+    icon: Trophy,
+    description: "Currently active challenges",
+  },
+  {
+    key: "active_government_jobs",
+    title: "Government Jobs",
+    icon: Building2,
+    description: "Currently active jobs",
+  },
+  {
+    key: "active_campaigns",
+    title: "Campaigns",
+    icon: Megaphone,
+    description: "Active campaigns",
+  },
+];
+
+const portalCards = [
+  {
+    title: "Student Intelligence",
+    description:
+      "Explore student profiles, skills, projects, evaluations, and achievements.",
+    icon: GraduationCap,
+    links: [
+      { label: "Students", path: "/students" },
+      { label: "Skills", path: "/skills" },
+      { label: "Projects", path: "/projects" },
+      { label: "Proof of Work", path: "/proof-of-work" },
+      { label: "AI Evaluations", path: "/ai-evaluations" },
+    ],
+  },
+  {
+    title: "Recruiter Intelligence",
+    description:
+      "Analyze recruiters, hiring activities, demand skills, and recruitment trends.",
+    icon: BriefcaseBusiness,
+    links: [
+      { label: "Recruiters", path: "/recruiters" },
+      { label: "Hiring Activity", path: "/hiring-activity" },
+      { label: "Demand Skills", path: "/demand-skills" },
+      { label: "Challenges", path: "/challenges" },
+      { label: "Recruitment Trends", path: "/recruitment-trends" },
+    ],
+  },
+  {
+    title: "Government Intelligence",
+    description:
+      "Monitor skill gaps, sectors, jobs, campaigns, reports, and regional data.",
+    icon: Building2,
+    links: [
+      { label: "Skill Gap", path: "/skill-gap" },
+      { label: "Sector Strength", path: "/sectors" },
+      { label: "Low-Pursued Sectors", path: "/low-pursued-sectors" },
+      { label: "Government Jobs", path: "/jobs" },
+      { label: "Campaigns", path: "/campaigns" },
+      { label: "Reports", path: "/reports" },
+      { label: "Regional Distribution", path: "/regional-distribution" },
+    ],
+  },
+];
+
+const quickAccess = [
+  {
+    to: "/students",
+    icon: Users,
+    title: "View Students",
+    description: "Browse student records.",
+  },
+  {
+    to: "/recruiters",
+    icon: BriefcaseBusiness,
+    title: "View Recruiters",
+    description: "Explore recruiter information.",
+  },
+  {
+    to: "/skill-gap",
+    icon: Target,
+    title: "Skill Gap Analysis",
+    description: "Identify talent shortages.",
+  },
+  {
+    to: "/reports",
+    icon: FileText,
+    title: "Reports",
+    description: "Access government reports.",
+  },
+];
+
+function Dashboard() {
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  async function loadDashboardData() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getDashboardSummary();
+      setDashboardData(data);
+    } catch (err) {
+      console.error("Dashboard loading error:", err);
+      setError("Unable to load dashboard statistics.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <DashboardLayout>
+      <PageHeader
+        eyebrow="Government Portal"
+        title="Government Dashboard"
+        description="Monitor student talent, recruitment activity, and employment opportunities across the ecosystem."
+        icon={BarChart3}
+      />
+
+      {/* Welcome banner */}
+      <section className="mb-8 overflow-hidden rounded-2xl bg-linear-to-r from-navy-900 to-accent-700 p-7 text-white shadow-lg sm:p-9">
+        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+          <div>
+            <p className="mb-2 text-sm font-medium text-accent-100">
+              Welcome to the analytics hub
+            </p>
+            <h2 className="text-2xl font-bold">
+              Empowering India&apos;s Future Workforce
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-accent-50/90">
+              Use data-driven insights to understand talent availability,
+              identify skill gaps, and monitor employment opportunities.
+            </p>
+          </div>
+
+          <BarChart3 className="h-14 w-14 flex-none text-white/70" />
+        </div>
+      </section>
+
+      {error && (
+        <div className="mb-8">
+          <ErrorState message={error} onRetry={loadDashboardData} />
+        </div>
+      )}
+
+      {/* Key statistics */}
+      <section className="mb-10">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-navy-900">Key Statistics</h2>
+          <p className="mt-1 text-sm text-navy-500">
+            Current platform statistics
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {statisticsConfig.map((stat) => (
+            <MetricCard
+              key={stat.key}
+              icon={stat.icon}
+              title={stat.title}
+              description={stat.description}
+              loading={loading}
+              value={dashboardData?.[stat.key] ?? 0}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Portal hub */}
+      <section className="mb-10">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-navy-900">Analytics Hub</h2>
+          <p className="mt-1 text-sm text-navy-500">
+            Select a section to explore detailed government insights.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          {portalCards.map((portal) => (
+            <HubCard key={portal.title} {...portal} />
+          ))}
+        </div>
+      </section>
+
+      {/* Quick access */}
+      <section>
+        <h2 className="mb-4 text-xl font-bold text-navy-900">Quick Access</h2>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {quickAccess.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="surface-card p-5 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]"
+            >
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-accent-100 text-accent-600">
+                <item.icon size={19} />
+              </div>
+              <h3 className="font-semibold text-navy-900">{item.title}</h3>
+              <p className="mt-1 text-sm text-navy-500">{item.description}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </DashboardLayout>
+  );
+}
+
+export default Dashboard;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\DemandSkills.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function DemandSkills() {
+  return (
+    <PlaceholderPage
+      title="Demand Skills"
+      description="Analyse the skills currently requested by recruiters and industries."
+    />
+  );
+}
+
+export default DemandSkills;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\GovernmentJobs.jsx =====
+
+import { BriefcaseBusiness, Building2, MapPin, ArrowUpRight } from "lucide-react";
+
+import DashboardLayout from "../components/layout/DashboardLayout";
+import PageHeader from "../components/ui/PageHeader";
+import Badge from "../components/ui/Badge";
+
+const GovernmentJobs = () => {
+  return (
+    <DashboardLayout>
+      <PageHeader
+        eyebrow="Employment Opportunities"
+        title="Government Jobs"
+        description="Explore government employment opportunities and public-sector recruitment information."
+        icon={BriefcaseBusiness}
+      />
+
+      <div className="mb-8 overflow-hidden rounded-2xl bg-navy-900 p-7 text-white shadow-lg md:p-9">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <div>
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+              <BriefcaseBusiness size={26} />
+            </div>
+
+            <h2 className="text-2xl font-bold">Government Jobs Module</h2>
+
+            <p className="mt-3 max-w-xl text-sm leading-6 text-white/75">
+              Manage and monitor employment opportunities published by
+              government departments and public-sector organizations.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/15 bg-white/10 px-6 py-5">
+            <p className="text-sm text-white/60">Module Status</p>
+            <Badge tone="success" className="mt-2">
+              Available
+            </Badge>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <InfoCard
+          icon={<Building2 size={21} />}
+          title="Departments"
+          description="View government departments and organizations."
+        />
+
+        <InfoCard
+          icon={<MapPin size={21} />}
+          title="Locations"
+          description="Explore job opportunities by location."
+        />
+
+        <InfoCard
+          icon={<BriefcaseBusiness size={21} />}
+          title="Job Listings"
+          description="Access available government job listings."
+        />
+      </div>
+    </DashboardLayout>
+  );
+};
+
+const InfoCard = ({ icon, title, description }) => (
+  <div className="surface-card p-6 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]">
+    <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-accent-100 text-accent-600">
+      {icon}
+    </div>
+
+    <h3 className="text-base font-bold text-navy-900">{title}</h3>
+
+    <p className="mt-2 text-sm leading-6 text-navy-500">{description}</p>
+
+    <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-accent-600">
+      Explore <ArrowUpRight size={15} />
+    </div>
+  </div>
+);
+
+export default GovernmentJobs;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\HiringActivity.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function HiringActivity() {
+  return (
+    <PlaceholderPage
+      title="Hiring Activity"
+      description="Monitor recruiter activity, candidate connections, and hiring trends."
+    />
+  );
+}
+
+export default HiringActivity;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\LowPursuedSectors.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function LowPursuedSectors() {
+  return (
+    <PlaceholderPage
+      title="Low-Pursued Sectors"
+      description="Identify sectors with low student participation and potential growth opportunities."
+    />
+  );
+}
+
+export default LowPursuedSectors;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\NotFound.jsx =====
+
+import { ArrowLeft, MapPinOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../components/layout/DashboardLayout";
+import Button from "../components/ui/Button";
+
+function NotFound() {
+  const navigate = useNavigate();
+
+  return (
+    <DashboardLayout>
+      <section className="surface-card flex flex-col items-center gap-4 px-6 py-20 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-100 text-accent-600">
+          <MapPinOff size={30} />
+        </div>
+
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-600">
+          Error 404
+        </p>
+
+        <h1 className="text-2xl font-bold text-navy-900 sm:text-3xl">
+          Page not found
+        </h1>
+
+        <p className="max-w-md text-sm leading-6 text-navy-500">
+          The page you&apos;re looking for doesn&apos;t exist or may have been
+          moved. Head back to the dashboard to continue.
+        </p>
+
+        <Button icon={ArrowLeft} onClick={() => navigate("/")} className="mt-2">
+          Back to Dashboard
+        </Button>
+      </section>
+    </DashboardLayout>
+  );
+}
+
+export default NotFound;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\PlaceholderPage.jsx =====
+
+import { ArrowLeft, Wrench } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../components/layout/DashboardLayout";
+import PageHeader from "../components/ui/PageHeader";
+import Badge from "../components/ui/Badge";
+import Button from "../components/ui/Button";
+
+function PlaceholderPage({ title, description }) {
+  const navigate = useNavigate();
+
+  return (
+    <DashboardLayout>
+      <PageHeader
+        eyebrow="Government Intelligence Portal"
+        title={title}
+        description={description}
+      />
+
+      <section className="surface-card flex flex-col items-start gap-5 p-8 sm:p-10">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-100 text-accent-600">
+          <Wrench size={26} />
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center gap-2">
+            <Badge tone="accent">Pending backend integration</Badge>
+          </div>
+
+          <p className="max-w-2xl text-sm leading-6 text-navy-500">
+            This module&apos;s interface is designed and ready. It will
+            populate with live data as soon as the corresponding API
+            endpoint is connected â€” no further frontend changes will be
+            required.
+          </p>
+        </div>
+
+        <Button variant="secondary" icon={ArrowLeft} onClick={() => navigate("/")}>
+          Back to Dashboard
+        </Button>
+      </section>
+    </DashboardLayout>
+  );
+}
+
+export default PlaceholderPage;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Projects.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function Projects() {
+  return (
+    <PlaceholderPage
+      title="Student Projects"
+      description="Review student projects, domains, technologies, and project activity."
+    />
+  );
+}
+
+export default Projects;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\ProofOfWork.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function ProofOfWork() {
+  return (
+    <PlaceholderPage
+      title="Proof of Work"
+      description="Explore verified student work, achievements, and practical evidence."
+    />
+  );
+}
+
+export default ProofOfWork;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Recruiters.jsx =====
+
+import {
+  Users,
+  Building2,
+  BriefcaseBusiness,
+  ChartNoAxesCombined,
+  ArrowUpRight,
+} from "lucide-react";
+
+import DashboardLayout from "../components/layout/DashboardLayout";
+import PageHeader from "../components/ui/PageHeader";
+import Badge from "../components/ui/Badge";
+
+const Recruiters = () => {
+  return (
+    <DashboardLayout>
+      <PageHeader
+        eyebrow="Industry Engagement"
+        title="Recruiters"
+        description="Monitor industry partners, hiring activity, and recruitment participation."
+        icon={Users}
+      />
+
+      <div className="mb-8 overflow-hidden rounded-2xl bg-linear-to-r from-navy-900 to-accent-700 p-7 text-white shadow-lg md:p-9">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <div>
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+              <Users size={26} />
+            </div>
+
+            <h2 className="text-2xl font-bold">Recruiters Module</h2>
+
+            <p className="mt-3 max-w-xl text-sm leading-6 text-white/80">
+              Monitor recruiters, hiring activity, industry demand, and
+              recruitment campaigns.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/15 bg-white/10 px-6 py-5">
+            <p className="text-sm text-white/70">Module Status</p>
+            <Badge tone="success" className="mt-2">
+              Available
+            </Badge>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <InfoCard
+          icon={<Building2 size={21} />}
+          title="Industry Partners"
+          description="Review participating organizations and recruiters."
+        />
+
+        <InfoCard
+          icon={<BriefcaseBusiness size={21} />}
+          title="Hiring Activity"
+          description="Monitor recruitment and hiring-related activities."
+        />
+
+        <InfoCard
+          icon={<ChartNoAxesCombined size={21} />}
+          title="Industry Demand"
+          description="Explore skill demand and recruitment trends."
+        />
+      </div>
+    </DashboardLayout>
+  );
+};
+
+const InfoCard = ({ icon, title, description }) => (
+  <div className="surface-card p-6 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]">
+    <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-accent-100 text-accent-600">
+      {icon}
+    </div>
+
+    <h3 className="text-base font-bold text-navy-900">{title}</h3>
+
+    <p className="mt-2 text-sm leading-6 text-navy-500">{description}</p>
+
+    <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-accent-600">
+      Explore <ArrowUpRight size={15} />
+    </div>
+  </div>
+);
+
+export default Recruiters;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\RecruitmentTrends.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function RecruitmentTrends() {
+  return (
+    <PlaceholderPage
+      title="Recruitment Trends"
+      description="Analyse recruitment patterns and changes in hiring activity."
+    />
+  );
+}
+
+export default RecruitmentTrends;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\RegionalDistribution.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function RegionalDistribution() {
+  return (
+    <PlaceholderPage
+      title="Regional Distribution"
+      description="Analyse student distribution and workforce data across regions."
+    />
+  );
+}
+
+export default RegionalDistribution;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Reports.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function Reports() {
+  return (
+    <PlaceholderPage
+      title="Government Reports"
+      description="Access consolidated reports and insights from the platform."
+    />
+  );
+}
+
+export default Reports;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Sectors.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function Sectors() {
+  return (
+    <PlaceholderPage
+      title="Sector Strength"
+      description="Compare student skills and workforce strength across different sectors."
+    />
+  );
+}
+
+export default Sectors;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\SkillGap.jsx =====
+
+import { useEffect, useState } from "react";
+import { BarChart3, RefreshCw, TrendingUp, Users } from "lucide-react";
+
+import DashboardLayout from "../components/layout/DashboardLayout";
+import PageHeader from "../components/ui/PageHeader";
+import Button from "../components/ui/Button";
+import MetricCard from "../components/cards/MetricCard";
+import Badge from "../components/ui/Badge";
+import { LoadingState, ErrorState, EmptyState } from "../components/ui/States";
+
+const API_URL = "http://localhost:8000";
+
+function SkillGap() {
+  const [skillGaps, setSkillGaps] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchSkillGapData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/api/government/skill-gap-analysis`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch skill-gap data");
+      }
+
+      const data = await response.json();
+
+      const result = Array.isArray(data)
+        ? data
+        : data.skill_gaps || data.data || [];
+
+      setSkillGaps(result);
+    } catch (err) {
+      console.error("Skill gap error:", err);
+      setError("Unable to load skill-gap analysis.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSkillGapData();
+  }, []);
+
+  const getStudentCount = (item) =>
+    Number(
+      item.student_count ??
+        item.students ??
+        item.available ??
+        item.student_total ??
+        0
+    );
+
+  const getDemandCount = (item) =>
+    Number(
+      item.demand_count ??
+        item.demand ??
+        item.required ??
+        item.industry_demand ??
+        0
+    );
+
+  const getSkillGap = (item) => {
+    const explicitGap = item.gap ?? item.skill_gap ?? item.difference ?? null;
+
+    if (explicitGap !== null) {
+      return Number(explicitGap);
+    }
+
+    return getDemandCount(item) - getStudentCount(item);
+  };
+
+  const skillsWithDemand = skillGaps.filter(
+    (item) =>
+      item.demand_count !== undefined ||
+      item.demand !== undefined ||
+      item.required !== undefined ||
+      item.industry_demand !== undefined
+  ).length;
+
+  const identifiedGaps = skillGaps.filter((item) => getSkillGap(item) > 0)
+    .length;
+
+  return (
+    <DashboardLayout>
+      <PageHeader
+        eyebrow="Government Intelligence"
+        title="Skill Gap Analysis"
+        description="Identify the difference between available student skills and industry-demanded skills to support targeted training and workforce development."
+        icon={BarChart3}
+      />
+
+      {/* Summary cards */}
+      <section className="mb-8 grid gap-5 md:grid-cols-3">
+        <MetricCard
+          icon={Users}
+          title="Skills Analysed"
+          description="Analysis"
+          value={skillGaps.length}
+          loading={loading}
+        />
+        <MetricCard
+          icon={TrendingUp}
+          title="Skills With Demand Data"
+          description="Demand"
+          value={skillsWithDemand}
+          loading={loading}
+        />
+        <MetricCard
+          icon={BarChart3}
+          title="Potential Skill Gaps"
+          description="Priority"
+          value={identifiedGaps}
+          loading={loading}
+        />
+      </section>
+
+      {/* Skill gap table */}
+      <section className="surface-card p-5 sm:p-7">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-navy-900">
+              Skill Gap Breakdown
+            </h2>
+            <p className="mt-1 text-sm text-navy-500">
+              Comparison of available skills and demand indicators.
+            </p>
+          </div>
+
+          <Button variant="secondary" icon={RefreshCw} onClick={fetchSkillGapData}>
+            Refresh
+          </Button>
+        </div>
+
+        {loading && <LoadingState label="Loading skill-gap data..." />}
+
+        {!loading && error && (
+          <ErrorState message={error} onRetry={fetchSkillGapData} />
+        )}
+
+        {!loading && !error && skillGaps.length === 0 && (
+          <EmptyState
+            title="No skill-gap data available"
+            description="Skill gap analysis will appear here once data is returned by the backend."
+          />
+        )}
+
+        {!loading && !error && skillGaps.length > 0 && (
+          <div className="thin-scroll overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase tracking-wider text-navy-400">
+                  <th className="px-4 py-4 font-semibold">Skill</th>
+                  <th className="px-4 py-4 font-semibold">Student Count</th>
+                  <th className="px-4 py-4 font-semibold">Demand Count</th>
+                  <th className="px-4 py-4 font-semibold">Skill Gap</th>
+                  <th className="px-4 py-4 font-semibold">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {skillGaps.map((item, index) => {
+                  const skillName =
+                    item.skill_name || item.skill || item.name || `Skill ${index + 1}`;
+
+                  const studentCount = getStudentCount(item);
+                  const demandCount = getDemandCount(item);
+                  const gap = getSkillGap(item);
+
+                  return (
+                    <tr
+                      key={`${skillName}-${index}`}
+                      className="border-b border-border transition hover:bg-accent-50/60"
+                    >
+                      <td className="px-4 py-4 font-semibold text-navy-900">
+                        {skillName}
+                      </td>
+                      <td className="px-4 py-4 text-navy-600">{studentCount}</td>
+                      <td className="px-4 py-4 text-navy-600">{demandCount}</td>
+                      <td
+                        className={`px-4 py-4 font-semibold ${
+                          gap > 0 ? "text-rose-600" : "text-emerald-600"
+                        }`}
+                      >
+                        {gap}
+                      </td>
+                      <td className="px-4 py-4">
+                        <Badge tone={gap > 0 ? "danger" : "success"}>
+                          {gap > 0 ? "Gap Identified" : "Balanced"}
+                        </Badge>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </DashboardLayout>
+  );
+}
+
+export default SkillGap;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Skills.jsx =====
+
+import PlaceholderPage from "./PlaceholderPage";
+
+function Skills() {
+  return (
+    <PlaceholderPage
+      title="Skills Intelligence"
+      description="Explore the skills possessed by students across the platform."
+    />
+  );
+}
+
+export default Skills;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\pages\Students.jsx =====
+
+import { useEffect, useState } from "react";
+import { Users, Search, MapPin, GraduationCap, RefreshCw } from "lucide-react";
+
+import DashboardLayout from "../components/layout/DashboardLayout";
+import PageHeader from "../components/ui/PageHeader";
+import Button from "../components/ui/Button";
+import { EmptyState } from "../components/ui/States";
+import { getStudents } from "../services/governmentService";
+
+const Students = () => {
+  const [students, setStudents] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  const loadStudents = async () => {
+    setLoading(true);
+
+    try {
+      const response = await getStudents();
+
+      const studentsData = Array.isArray(response.data) ? response.data : [];
+
+      const uniqueStudents = Array.from(
+        new Map(
+          studentsData.map((student) => [student.student_id, student])
+        ).values()
+      );
+
+      setStudents(uniqueStudents);
+    } catch (error) {
+      console.error("Failed to load students:", error);
+      setStudents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredStudents = students.filter((student) => {
+    const query = search.toLowerCase();
+
+    return (
+      String(student.student_id).includes(query) ||
+      (student.student_name || "").toLowerCase().includes(query) ||
+      (student.college_name || "").toLowerCase().includes(query) ||
+      (student.location || "").toLowerCase().includes(query)
+    );
+  });
+
+  return (
+    <DashboardLayout>
+      <PageHeader
+        eyebrow="Student Intelligence"
+        title="Students"
+        description="Browse registered students and their academic information."
+        icon={Users}
+        actions={
+          <Button variant="secondary" icon={RefreshCw} onClick={loadStudents}>
+            Refresh
+          </Button>
+        }
+      />
+
+      {/* Summary */}
+      <div className="mb-6 flex flex-col justify-between gap-4 rounded-2xl bg-navy-900 p-6 text-white shadow-lg md:flex-row md:items-center">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+            <Users size={26} />
+          </div>
+
+          <div>
+            <p className="text-sm text-white/70">Registered Students</p>
+            <p className="mt-1 text-3xl font-bold">{students.length}</p>
+          </div>
+        </div>
+
+        <div className="text-sm text-white/70">Student directory</div>
+      </div>
+
+      {/* Table card */}
+      <section className="surface-card overflow-hidden">
+        <div className="flex flex-col justify-between gap-4 border-b border-border p-5 md:flex-row md:items-center md:p-6">
+          <div>
+            <h2 className="text-lg font-bold text-navy-900">
+              Student Directory
+            </h2>
+            <p className="mt-1 text-sm text-navy-500">
+              {filteredStudents.length} student records displayed
+            </p>
+          </div>
+
+          <div className="relative w-full md:w-80">
+            <Search
+              size={17}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-navy-400"
+            />
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="w-full rounded-xl border border-border bg-muted-50 py-2.5 pl-10 pr-4 text-sm text-navy-800 outline-none transition focus:border-accent-400 focus:ring-2 focus:ring-accent-100"
+            />
+          </div>
+        </div>
+
+        <div className="thin-scroll overflow-x-auto">
+          <table className="w-full min-w-[700px] text-left">
+            <thead className="bg-muted-50">
+              <tr className="text-xs uppercase tracking-wider text-navy-400">
+                <th className="px-6 py-4 font-semibold">Student ID</th>
+                <th className="px-6 py-4 font-semibold">Name</th>
+                <th className="px-6 py-4 font-semibold">College</th>
+                <th className="px-6 py-4 font-semibold">Location</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="border-t border-border">
+                    {Array.from({ length: 4 }).map((__, j) => (
+                      <td key={j} className="px-6 py-4">
+                        <div className="h-4 w-full max-w-[160px] animate-pulse rounded bg-muted-50" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <tr
+                    key={student.student_id}
+                    className="border-t border-border transition hover:bg-accent-50/60"
+                  >
+                    <td className="px-6 py-4">
+                      <span className="rounded-lg bg-muted-50 px-3 py-1 text-sm font-semibold text-navy-700">
+                        #{student.student_id}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-100 text-accent-700">
+                          <GraduationCap size={17} />
+                        </div>
+                        <span className="font-semibold text-navy-800">
+                          {student.student_name || "â€”"}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4 text-sm text-navy-600">
+                      {student.college_name || "â€”"}
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-navy-600">
+                        <MapPin size={15} className="text-navy-400" />
+                        {student.location || "â€”"}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="px-6 py-10">
+                    <EmptyState
+                      title="No students found"
+                      description="Try a different search term, or check back once student records are available."
+                    />
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </DashboardLayout>
+  );
+};
+
+export default Students;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\services\api.js =====
+
+const API_BASE_URL = "http://localhost:8000";
+
+export async function getDashboardSummary() {
+  const response = await fetch(
+    `${API_BASE_URL}/api/government/dashboard-summary`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch dashboard summary");
+  }
+
+  return response.json();
+}
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\services\governmentApi.js =====
+
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "http://localhost:8000/api/government",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ================= DASHBOARD =================
+
+export const getDashboardSummary = () =>
+  api.get("/dashboard-summary");
+
+export const getTopStudentSkills = () =>
+  api.get("/top-student-skills");
+
+export const getTopDemandSkills = () =>
+  api.get("/top-demand-skills");
+
+export const getHighestSkilledSectors = () =>
+  api.get("/highest-skilled-sectors");
+
+export const getLowestPursuedSectors = () =>
+  api.get("/lowest-pursued-sectors");
+
+export const getRegionalDistribution = () =>
+  api.get("/regional-distribution");
+
+export const getSkillGap = () =>
+  api.get("/skill-gap");
+
+// ================= STUDENTS =================
+
+export const getStudents = () =>
+  api.get("/students/");
+
+export const getStudentById = (id) =>
+  api.get(`/students/${id}`);
+
+export const getStudentProjects = (id) =>
+  api.get(`/students/${id}/projects`);
+
+export const getStudentProof = (id) =>
+  api.get(`/students/${id}/proof`);
+
+export const searchStudents = (params) =>
+  api.get("/students/search", { params });
+
+// ================= RECRUITERS =================
+
+export const getRecruiters = () =>
+  api.get("/recruiters/");
+
+export const getRecruiterById = (id) =>
+  api.get(`/recruiters/${id}`);
+
+export const getIndustryDemand = () =>
+  api.get("/recruiters/industry-demand");
+
+export const getCompanyDemand = () =>
+  api.get("/recruiters/company-demand");
+
+export const getRecruiterTopSkills = () =>
+  api.get("/recruiters/top-skills");
+
+export const getChallenges = () =>
+  api.get("/recruiters/challenges");
+
+// ================= JOBS =================
+
+export const getJobs = () =>
+  api.get("/jobs/");
+
+export const getActiveJobs = () =>
+  api.get("/jobs/active");
+
+export const getJobById = (id) =>
+  api.get(`/jobs/${id}`);
+
+export const getJobMatches = (id) =>
+  api.get(`/jobs/${id}/matches`);
+
+export const createJob = (data) =>
+  api.post("/jobs/", data);
+
+// ================= ANALYTICS =================
+
+export const getAnalyticsSkillGap = () =>
+  api.get("/analytics/skill-gap");
+
+export const getAnalyticsRegionalDistribution = () =>
+  api.get("/analytics/regional-distribution");
+
+export const getAnalyticsHighestSkilledSectors = () =>
+  api.get("/analytics/highest-skilled-sectors");
+
+export const getAnalyticsLowestSkilledSectors = () =>
+  api.get("/analytics/lowest-skilled-sectors");
+
+export const getAnalyticsReports = () =>
+  api.get("/analytics/reports");
+
+export const getAnalyticsCampaigns = () =>
+  api.get("/analytics/campaigns");
+
+export const createCampaign = (data) =>
+  api.post("/analytics/campaigns", data);
+
+export default api;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\services\governmentService.js =====
+
+import api from "./governmentApi";
+
+// Dashboard
+export const getDashboardSummary = () =>
+  api.get("/dashboard-summary");
+
+export const getTopStudentSkills = () =>
+  api.get("/top-student-skills");
+
+export const getTopDemandSkills = () =>
+  api.get("/top-demand-skills");
+
+// Analytics
+export const getHighestSkilledSectors = () =>
+  api.get("/analytics/highest-skilled-sectors");
+
+export const getRegionalDistribution = () =>
+  api.get("/analytics/regional-distribution");
+
+export const getSkillGap = () =>
+  api.get("/analytics/skill-gap");
+
+export const getLowestSkilledSectors = () =>
+  api.get("/analytics/lowest-skilled-sectors");
+
+// Students
+export const getStudents = () =>
+  api.get("/students/");
+
+// Recruiters
+export const getRecruiters = () =>
+  api.get("/recruiters/");
+
+// Jobs
+export const getGovernmentJobs = () =>
+  api.get("/jobs/");
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\App.jsx =====
+
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from "react-router-dom";
+
+import Dashboard from "./pages/Dashboard";
+import Students from "./pages/Students";
+import Recruiters from "./pages/Recruiters";
+import Analytics from "./pages/Analytics";
+import GovernmentJobs from "./pages/GovernmentJobs";
+import SkillGap from "./pages/SkillGap";
+
+import Skills from "./pages/Skills";
+import Projects from "./pages/Projects";
+import ProofOfWork from "./pages/ProofOfWork";
+import AIEvaluations from "./pages/AIEvaluations";
+
+import HiringActivity from "./pages/HiringActivity";
+import DemandSkills from "./pages/DemandSkills";
+import Challenges from "./pages/Challenges";
+import RecruitmentTrends from "./pages/RecruitmentTrends";
+
+import Sectors from "./pages/Sectors";
+import LowPursuedSectors from "./pages/LowPursuedSectors";
+import Campaigns from "./pages/Campaigns";
+import Reports from "./pages/Reports";
+import RegionalDistribution from "./pages/RegionalDistribution";
+import NotFound from "./pages/NotFound";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Main Dashboard */}
+        <Route path="/" element={<Dashboard />} />
+
+        {/* Student Intelligence */}
+        <Route path="/students" element={<Students />} />
+        <Route path="/skills" element={<Skills />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/proof-of-work" element={<ProofOfWork />} />
+        <Route path="/ai-evaluations" element={<AIEvaluations />} />
+
+        {/* Recruiter Intelligence */}
+        <Route path="/recruiters" element={<Recruiters />} />
+        <Route path="/hiring-activity" element={<HiringActivity />} />
+        <Route path="/demand-skills" element={<DemandSkills />} />
+        <Route path="/challenges" element={<Challenges />} />
+        <Route path="/recruitment-trends" element={<RecruitmentTrends />} />
+
+        {/* Government Intelligence */}
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/skill-gap" element={<SkillGap />} />
+        <Route path="/sectors" element={<Sectors />} />
+        <Route
+          path="/low-pursued-sectors"
+          element={<LowPursuedSectors />}
+        />
+        <Route
+          path="/regional-distribution"
+          element={<RegionalDistribution />}
+        />
+        <Route path="/jobs" element={<GovernmentJobs />} />
+        <Route path="/campaigns" element={<Campaigns />} />
+        <Route path="/reports" element={<Reports />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\index.css =====
+
+@import "tailwindcss";
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* ==================================================================
+   DESIGN TOKENS
+   A light, modern, "government intelligence platform" design system.
+   Deep navy for authority + a refined blue accent, on soft neutral
+   surfaces. These map to Tailwind utilities automatically (Tailwind
+   v4 CSS-first theme), e.g. bg-accent-600, text-navy-900, etc.
+   ================================================================== */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Navy â€” headings, primary text, dark surfaces */
+  --color-navy-950: #0a1730;
+  --color-navy-900: #0f1f3d;
+  --color-navy-800: #16294f;
+  --color-navy-700: #1f3562;
+  --color-navy-600: #2c4478;
+  --color-navy-500: #435a91;
+
+  /* Accent â€” refined government blue */
+  --color-accent-700: #0d3aa8;
+  --color-accent-600: #1146d1;
+  --color-accent-500: #2a5eea;
+  --color-accent-400: #5b83f0;
+  --color-accent-100: #e7edfd;
+  --color-accent-50: #f2f5fe;
+
+  /* Neutrals â€” soft, warm-ish grey backgrounds */
+  --color-canvas: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-border: #e6e9f2;
+  --color-border-strong: #d7dce8;
+  --color-muted-50: #f8f9fc;
+
+  /* Secondary accents */
+  --color-teal-600: #0f8a7a;
+  --color-teal-100: #e2f5f2;
+  --color-amber-600: #b7791f;
+  --color-amber-100: #fbf1dc;
+  --color-rose-600: #b3413c;
+  --color-rose-100: #fbeae9;
+  --color-emerald-600: #178a5c;
+  --color-emerald-100: #e2f5ea;
+
+  --radius-xl: 1.25rem;
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+
+  --shadow-card: 0 1px 2px rgba(15, 31, 61, 0.04), 0 8px 24px -12px rgba(15, 31, 61, 0.12);
+  --shadow-card-hover: 0 4px 10px rgba(15, 31, 61, 0.06), 0 16px 32px -12px rgba(15, 31, 61, 0.16);
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--color-navy-900);
+  background: var(--color-canvas);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--color-canvas);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--color-accent-500);
+  color: white;
+}
+
+/* Focus visibility for keyboard navigation (accessibility) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Thin, unobtrusive scrollbars for tables / drawers */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+
+/* ==================================================================
+   REUSABLE PRIMITIVES
+   Kept deliberately small â€” most styling happens via Tailwind
+   utilities in components, these cover repeated patterns only.
+   ================================================================== */
+.surface-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.primary-button {
+  border-radius: var(--radius-md);
+  background: var(--color-accent-600);
+  padding: 0.65rem 1.15rem;
+  font-weight: 600;
+  color: white;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.primary-button:hover {
+  background: var(--color-accent-700);
+}
+
+.primary-button:active {
+  transform: translateY(1px);
+}
+
+.secondary-button {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 0.65rem 1.15rem;
+  font-weight: 600;
+  color: var(--color-navy-800);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.secondary-button:hover {
+  background: var(--color-muted-50);
+  border-color: var(--color-border-strong);
+}
+
+.section-heading {
+  color: var(--color-navy-900);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.muted-text {
+  color: var(--color-navy-500);
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.35s ease both;
+}
+
+===== C:\Users\user\OneDrive\Desktop\fgapifbafjna\src\main.jsx =====
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+
+import App from "./App";
+import "./index.css";
+
+ReactDOM.createRoot(
+  document.getElementById("root")
+).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

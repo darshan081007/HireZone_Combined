@@ -1,0 +1,6 @@
+{
+  "name": "HIREZONE — Student Career Development Platform",
+  "description": "Student career development platform connecting job-market demand, company projects, treasure-hunt roadmaps, curated NPTEL & Coursera learning, AI-assisted project evaluations, badges, and recruiter networking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

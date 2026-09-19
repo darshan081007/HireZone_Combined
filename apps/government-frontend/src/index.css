@@ -1,0 +1,118 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+/* ==================================================================
+   DESIGN TOKENS - GOVERNMENT INTELLIGENCE PALETTE
+   ================================================================== */
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-brand-primary: #176b3a;
+  --color-brand-hover: #15803d;
+  --color-brand-light: #9ad9b1;
+  --color-brand-status: #2e8b57;
+
+  --color-text-main: #24352a;
+  --color-text-muted: #6b7280;
+  --color-warm-accent: #7a5535;
+
+  --color-canvas: #f3fbf5;
+  --color-surface: #ffffff;
+  --color-border-custom: #d5e8da;
+
+  --shadow-card: 0 2px 6px -1px rgba(23, 107, 58, 0.05),
+    0 10px 20px -5px rgba(23, 107, 58, 0.08);
+
+  --shadow-card-hover: 0 12px 28px -6px rgba(23, 107, 58, 0.16);
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: #24352a;
+  background: #f3fbf5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f3fbf5;
+  color: #24352a;
+}
+
+/* Elevating card transition with scaling & soft shadows */
+.card-hover-elevation {
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s ease;
+}
+
+.card-hover-elevation:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 14px 30px -8px rgba(23, 107, 58, 0.15);
+  border-color: #9ad9b1;
+}
+
+/* Page slide + fade transition */
+.page-transition {
+  animation: pageSlideFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pageSlideFade {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Skeleton Shimmer Loading */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #e8f4eb 25%,
+    #d5e8da 37%,
+    #e8f4eb 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+}
+
+/* Custom scrollbar */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #9ad9b1 transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: #9ad9b1;
+  border-radius: 999px;
+}
