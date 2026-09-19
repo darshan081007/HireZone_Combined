@@ -2,11 +2,11 @@ import './App.css'
 
 function App() {
   const openPortal = (portal: 'student' | 'recruiter' | 'government') => {
-    const urls = {
-      student: 'http://localhost:5174',
-      recruiter: 'http://localhost:5175',
-      government: 'http://localhost:5176',
-    }
+   const urls = {
+  student: 'https://hire-zone-combined.vercel.app/',
+  recruiter: 'https://hire-zone-combined-t31t.vercel.app/',
+  government: 'https://hire-zone-combined-govfr.vercel.app/',
+}
 
     window.location.href = urls[portal]
   }
