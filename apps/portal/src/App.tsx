@@ -2,9 +2,9 @@ import './App.css'
 
 function App() {
   const openPortal = (portal: 'student' | 'recruiter' | 'government') => {
-   const urls = {
-  student: 'https://hire-zone-combined.vercel.app/',
-  recruiter: 'https://hire-zone-combined-t31t.vercel.app/',
+ const urls = {
+  student: 'https://hire-zone-combined-t31t.vercel.app/',
+  recruiter: 'https://hire-zone-combined-txw6.vercel.app/',
   government: 'https://hire-zone-combined-govfr.vercel.app/',
 }
 
