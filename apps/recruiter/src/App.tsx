@@ -365,7 +365,6 @@ async function fetchExistingConnectStatus(
   return 'none'
 }
 
-
 function applyCandidateFilters(
   candidates: Candidate[],
   active: Filters,
@@ -393,8 +392,6 @@ function applyCandidateFilters(
     const aiScore = Number(candidate.ai_test_score ?? 0)
     const badges = Number(candidate.badges_earned ?? 0)
 
-    // These are intentionally applied in the UI as a second guard.
-    // The search RPC also receives the same values.
     if (
       minScore !== null &&
       Number.isFinite(minScore) &&
@@ -477,10 +474,12 @@ function App() {
   const [filters, setFilters] =
     useState<Filters>(DEFAULT_FILTERS)
 
-  const [skillOptions, setSkillOptions] =
+  // FIXED: removed unused setSkillOptions
+  const [skillOptions] =
     useState<string[]>(DEFAULT_SKILLS)
 
-  const [domainOptions, setDomainOptions] =
+  // FIXED: removed unused setDomainOptions
+  const [domainOptions] =
     useState<string[]>(DEFAULT_DOMAINS)
 
   const [recruiter, setRecruiter] =
@@ -572,9 +571,6 @@ function App() {
   const [selectedChallengeId, setSelectedChallengeId] =
     useState<number | null>(null)
 
-  const [selectedChallenge, setSelectedChallenge] =
-    useState<Challenge | null>(null)
-
   const [challenges, setChallenges] =
     useState<Challenge[]>([])
 
@@ -598,9 +594,6 @@ function App() {
 
   const [existingStatus, setExistingStatus] =
     useState<ConnectStatus>('none')
-
-  const [projectCandidates, setProjectCandidates] =
-    useState<Candidate[]>([])
 
   const [checkingExisting, setCheckingExisting] =
     useState(false)
@@ -836,10 +829,6 @@ function App() {
             }),
           )
 
-        setProjectCandidates(
-          mappedCandidates,
-        )
-
         setCandidates(
           mappedCandidates,
         )
@@ -863,14 +852,13 @@ function App() {
             : 'Failed to load challenge candidates.',
         )
 
-        setProjectCandidates([])
         setCandidates([])
       } finally {
         setLoading(false)
       }
     }
 
-const searchCandidates = useCallback(
+  const searchCandidates = useCallback(
     async (active: Filters) => {
       setLoading(true)
       setError('')
@@ -882,7 +870,10 @@ const searchCandidates = useCallback(
           activeRecruiterId,
         )
 
-        console.log('SEARCH FILTERS:', rpcFilters)
+        console.log(
+          'SEARCH FILTERS:',
+          rpcFilters,
+        )
 
         const { data, error: rpcError } =
           await supabase.rpc(
@@ -891,43 +882,74 @@ const searchCandidates = useCallback(
           )
 
         if (rpcError) {
-          console.error('Search RPC error:', rpcError)
+          console.error(
+            'Search RPC error:',
+            rpcError,
+          )
+
           setError(
             `Search failed: ${
-              rpcError.message || JSON.stringify(rpcError)
+              rpcError.message ||
+              JSON.stringify(rpcError)
             }`,
           )
+
           setCandidates([])
+
           return
         }
 
-        console.log('SEARCH RPC RESULT:', data)
-
-        const filteredCandidates = applyCandidateFilters(
-          (data ?? []) as Candidate[],
-          active,
+        console.log(
+          'SEARCH RPC RESULT:',
+          data,
         )
 
-        console.log('FILTERED RESULT COUNT:', filteredCandidates.length)
-        console.log('FILTERED RESULTS:', filteredCandidates)
+        const filteredCandidates =
+          applyCandidateFilters(
+            (data ?? []) as Candidate[],
+            active,
+          )
 
-        setCandidates(filteredCandidates)
+        console.log(
+          'FILTERED RESULT COUNT:',
+          filteredCandidates.length,
+        )
 
-        if (filteredCandidates.length === 0) {
-          setNotice('No candidates match the selected filters.')
+        console.log(
+          'FILTERED RESULTS:',
+          filteredCandidates,
+        )
+
+        setCandidates(
+          filteredCandidates,
+        )
+
+        if (
+          filteredCandidates.length === 0
+        ) {
+          setNotice(
+            'No candidates match the selected filters.',
+          )
         } else {
           setNotice(
             `${filteredCandidates.length} candidate${
-              filteredCandidates.length === 1 ? '' : 's'
+              filteredCandidates.length === 1
+                ? ''
+                : 's'
             } found.`,
           )
         }
       } catch (err) {
-        console.error('Candidate search failed:', err)
+        console.error(
+          'Candidate search failed:',
+          err,
+        )
 
         setError(
           `Search failed: ${
-            err instanceof Error ? err.message : JSON.stringify(err)
+            err instanceof Error
+              ? err.message
+              : JSON.stringify(err)
           }`,
         )
 
@@ -1102,7 +1124,9 @@ const searchCandidates = useCallback(
           )
         }
 
-        if (resolved === 'none') {
+        if (
+          resolved === 'none'
+        ) {
           setSentStudentIds(
             (previous) => {
               const next =
@@ -1439,9 +1463,7 @@ const searchCandidates = useCallback(
     setConnections([])
     setChallenges([])
     setCandidates([])
-    setProjectCandidates([])
     setSelectedChallengeId(null)
-    setSelectedChallenge(null)
     setSentStudentIds(new Set())
     setActivePage('search')
   }
@@ -1470,12 +1492,6 @@ const searchCandidates = useCallback(
     setSelectedChallengeId(
       null,
     )
-
-    setSelectedChallenge(
-      null,
-    )
-
-    setProjectCandidates([])
 
     void searchCandidates(
       DEFAULT_FILTERS,
@@ -1873,7 +1889,6 @@ const searchCandidates = useCallback(
           connectionStatusFilter,
     )
 
-
   const totalAccepted = connections.filter(
     (item) => item.status === 'Accepted',
   ).length
@@ -1889,7 +1904,10 @@ const searchCandidates = useCallback(
       ? Math.round(
           candidates.reduce(
             (sum, candidate) =>
-              sum + Number(candidate.relevance_score ?? 0),
+              sum +
+              Number(
+                candidate.relevance_score ?? 0,
+              ),
             0,
           ) / candidates.length,
         )
@@ -1906,11 +1924,22 @@ const searchCandidates = useCallback(
             <span className="brand-name">hirezone</span>
           </div>
 
-          <nav className="public-nav" aria-label="Main navigation">
-            <a href="#discover">Discover talent</a>
-            <a href="#proof">Proof of work</a>
-            <a href="#companies">For companies</a>
-            <a href="#guide">Guide</a>
+          <nav
+            className="public-nav"
+            aria-label="Main navigation"
+          >
+            <a href="#discover">
+              Discover talent
+            </a>
+            <a href="#proof">
+              Proof of work
+            </a>
+            <a href="#companies">
+              For companies
+            </a>
+            <a href="#guide">
+              Guide
+            </a>
           </nav>
 
           <div className="public-actions">
@@ -1924,6 +1953,7 @@ const searchCandidates = useCallback(
             >
               Sign in
             </button>
+
             <button
               type="button"
               className="dark-pill-button"
@@ -1939,15 +1969,20 @@ const searchCandidates = useCallback(
 
         <main className="auth-main">
           <div className="auth-copy">
-            <p className="eyebrow">INDUSTRY TALENT DISCOVERY</p>
+            <p className="eyebrow">
+              INDUSTRY TALENT DISCOVERY
+            </p>
+
             <h1>
               Meet the people
               <br />
               who can <em>build it.</em>
             </h1>
+
             <p className="auth-description">
-              Hirezone helps recruiters discover verified student talent
-              through skills, projects, challenges and proof of work.
+              Hirezone helps recruiters discover
+              verified student talent through skills,
+              projects, challenges and proof of work.
             </p>
 
             <div className="auth-proof-row">
@@ -1963,21 +1998,29 @@ const searchCandidates = useCallback(
             <div className="auth-card-top">
               <div>
                 <span className="small-kicker">
-                  {authMode === 'login' ? 'RECRUITER ACCESS' : 'NEW COMPANY'}
+                  {authMode === 'login'
+                    ? 'RECRUITER ACCESS'
+                    : 'NEW COMPANY'}
                 </span>
+
                 <h2>
                   {authMode === 'login'
                     ? 'Welcome back.'
                     : 'Create your company account.'}
                 </h2>
               </div>
+
               <span className="auth-card-dot" />
             </div>
 
             <div className="auth-tabs">
               <button
                 type="button"
-                className={authMode === 'login' ? 'auth-tab active' : 'auth-tab'}
+                className={
+                  authMode === 'login'
+                    ? 'auth-tab active'
+                    : 'auth-tab'
+                }
                 onClick={() => {
                   setAuthMode('login')
                   setRegisterError('')
@@ -1986,9 +2029,14 @@ const searchCandidates = useCallback(
               >
                 Sign in
               </button>
+
               <button
                 type="button"
-                className={authMode === 'register' ? 'auth-tab active' : 'auth-tab'}
+                className={
+                  authMode === 'register'
+                    ? 'auth-tab active'
+                    : 'auth-tab'
+                }
                 onClick={() => {
                   setAuthMode('register')
                   setLoginError('')
@@ -1999,45 +2047,65 @@ const searchCandidates = useCallback(
             </div>
 
             {authMode === 'login' ? (
-              <form className="clean-form" onSubmit={handleLogin}>
+              <form
+                className="clean-form"
+                onSubmit={handleLogin}
+              >
                 <label>
                   Recruiter ID
+
                   <input
                     type="text"
                     inputMode="numeric"
                     placeholder="e.g. 104"
                     value={loginRecruiterId}
                     onChange={(event) =>
-                      setLoginRecruiterId(event.target.value)
+                      setLoginRecruiterId(
+                        event.target.value,
+                      )
                     }
                   />
                 </label>
 
                 <label>
                   Password
+
                   <div className="input-with-action">
                     <input
-                      type={showLoginPassword ? 'text' : 'password'}
+                      type={
+                        showLoginPassword
+                          ? 'text'
+                          : 'password'
+                      }
                       placeholder="Enter password"
                       value={loginPassword}
                       onChange={(event) =>
-                        setLoginPassword(event.target.value)
+                        setLoginPassword(
+                          event.target.value,
+                        )
                       }
                       autoComplete="current-password"
                     />
+
                     <button
                       type="button"
                       onClick={() =>
-                        setShowLoginPassword((value) => !value)
+                        setShowLoginPassword(
+                          (value) => !value,
+                        )
                       }
                     >
-                      {showLoginPassword ? 'Hide' : 'Show'}
+                      {showLoginPassword
+                        ? 'Hide'
+                        : 'Show'}
                     </button>
                   </div>
                 </label>
 
                 {loginError && (
-                  <div className="form-error">{loginError}</div>
+                  <div className="form-error">
+                    {loginError}
+                  </div>
                 )}
 
                 <button
@@ -2045,31 +2113,43 @@ const searchCandidates = useCallback(
                   className="primary-submit"
                   disabled={loginLoading}
                 >
-                  {loginLoading ? 'Signing in…' : 'Continue'} <span>→</span>
+                  {loginLoading
+                    ? 'Signing in…'
+                    : 'Continue'}{' '}
+                  <span>→</span>
                 </button>
               </form>
             ) : (
-              <form className="clean-form register-form-grid" onSubmit={handleRegister}>
+              <form
+                className="clean-form register-form-grid"
+                onSubmit={handleRegister}
+              >
                 <label>
                   Company name *
+
                   <input
                     type="text"
                     placeholder="Your company"
                     value={registerCompanyName}
                     onChange={(event) =>
-                      setRegisterCompanyName(event.target.value)
+                      setRegisterCompanyName(
+                        event.target.value,
+                      )
                     }
                   />
                 </label>
 
                 <label>
                   Email *
+
                   <input
                     type="email"
                     placeholder="company@example.com"
                     value={registerEmail}
                     onChange={(event) =>
-                      setRegisterEmail(event.target.value)
+                      setRegisterEmail(
+                        event.target.value,
+                      )
                     }
                     autoComplete="email"
                   />
@@ -2077,86 +2157,121 @@ const searchCandidates = useCallback(
 
                 <label>
                   Password *
+
                   <div className="input-with-action">
                     <input
-                      type={showRegisterPassword ? 'text' : 'password'}
+                      type={
+                        showRegisterPassword
+                          ? 'text'
+                          : 'password'
+                      }
                       placeholder="Minimum 6 characters"
                       value={registerPassword}
                       onChange={(event) =>
-                        setRegisterPassword(event.target.value)
+                        setRegisterPassword(
+                          event.target.value,
+                        )
                       }
                       autoComplete="new-password"
                     />
+
                     <button
                       type="button"
                       onClick={() =>
-                        setShowRegisterPassword((value) => !value)
+                        setShowRegisterPassword(
+                          (value) => !value,
+                        )
                       }
                     >
-                      {showRegisterPassword ? 'Hide' : 'Show'}
+                      {showRegisterPassword
+                        ? 'Hide'
+                        : 'Show'}
                     </button>
                   </div>
                 </label>
 
                 <label>
                   Phone
+
                   <input
                     type="tel"
                     placeholder="+91…"
                     value={registerPhone}
                     onChange={(event) =>
-                      setRegisterPhone(event.target.value)
+                      setRegisterPhone(
+                        event.target.value,
+                      )
                     }
                   />
                 </label>
 
                 <label>
                   Location
+
                   <input
                     type="text"
                     placeholder="e.g. Bengaluru"
                     value={registerLocation}
                     onChange={(event) =>
-                      setRegisterLocation(event.target.value)
+                      setRegisterLocation(
+                        event.target.value,
+                      )
                     }
                   />
                 </label>
 
                 <label>
                   Industry
+
                   <input
                     type="text"
                     placeholder="Technology"
                     value={registerIndustry}
                     onChange={(event) =>
-                      setRegisterIndustry(event.target.value)
+                      setRegisterIndustry(
+                        event.target.value,
+                      )
                     }
                   />
                 </label>
 
                 <label>
                   Company type
+
                   <select
                     value={registerCompanyType}
                     onChange={(event) =>
-                      setRegisterCompanyType(event.target.value)
+                      setRegisterCompanyType(
+                        event.target.value,
+                      )
                     }
                   >
-                    <option value="">Select type</option>
-                    <option value="Startup">Startup</option>
-                    <option value="SME">SME</option>
-                    <option value="Enterprise">Enterprise</option>
+                    <option value="">
+                      Select type
+                    </option>
+                    <option value="Startup">
+                      Startup
+                    </option>
+                    <option value="SME">
+                      SME
+                    </option>
+                    <option value="Enterprise">
+                      Enterprise
+                    </option>
                   </select>
                 </label>
 
                 <label>
                   Website
+
                   <input
                     type="url"
                     placeholder="https://…"
                     value={registerWebsite}
                     onChange={(event) =>
-                      setRegisterWebsite(event.target.value)
+                      setRegisterWebsite(
+                        event.target.value,
+                      )
                     }
                   />
                 </label>
@@ -2169,15 +2284,24 @@ const searchCandidates = useCallback(
 
                 {registeredRecruiterId !== null && (
                   <div className="registration-success form-span-2">
-                    <strong>Account created.</strong>
+                    <strong>
+                      Account created.
+                    </strong>
+
                     <span>
-                      Recruiter ID: <b>{registeredRecruiterId}</b>
+                      Recruiter ID:{' '}
+                      <b>
+                        {registeredRecruiterId}
+                      </b>
                     </span>
+
                     <button
                       type="button"
                       onClick={() => {
                         setAuthMode('login')
-                        setRegisteredRecruiterId(null)
+                        setRegisteredRecruiterId(
+                          null,
+                        )
                       }}
                     >
                       Continue to sign in →
@@ -2190,14 +2314,17 @@ const searchCandidates = useCallback(
                   className="primary-submit form-span-2"
                   disabled={registerLoading}
                 >
-                  {registerLoading ? 'Creating account…' : 'Create account'}{' '}
+                  {registerLoading
+                    ? 'Creating account…'
+                    : 'Create account'}{' '}
                   <span>→</span>
                 </button>
               </form>
             )}
 
             <p className="auth-footnote">
-              Recruiter access is connected to your Hirezone company account.
+              Recruiter access is connected to your
+              Hirezone company account.
             </p>
           </div>
         </main>
@@ -2205,19 +2332,30 @@ const searchCandidates = useCallback(
         <section className="auth-highlight-band">
           <div>
             <strong>01</strong>
-            <span>Find verified talent</span>
+            <span>
+              Find verified talent
+            </span>
           </div>
+
           <div>
             <strong>02</strong>
-            <span>Inspect proof of work</span>
+            <span>
+              Inspect proof of work
+            </span>
           </div>
+
           <div>
             <strong>03</strong>
-            <span>Connect directly</span>
+            <span>
+              Connect directly
+            </span>
           </div>
+
           <div>
             <strong>04</strong>
-            <span>Track every request</span>
+            <span>
+              Track every request
+            </span>
           </div>
         </section>
       </div>
@@ -2234,14 +2372,24 @@ const searchCandidates = useCallback(
           <span className="brand-name">hirezone</span>
         </div>
 
-        <nav className="main-nav" aria-label="Recruiter navigation">
+        <nav
+          className="main-nav"
+          aria-label="Recruiter navigation"
+        >
           <button
             type="button"
-            className={activePage === 'search' ? 'main-nav-link active' : 'main-nav-link'}
-            onClick={() => setActivePage('search')}
+            className={
+              activePage === 'search'
+                ? 'main-nav-link active'
+                : 'main-nav-link'
+            }
+            onClick={() =>
+              setActivePage('search')
+            }
           >
             Discover talent
           </button>
+
           <button
             type="button"
             className={
@@ -2255,8 +2403,11 @@ const searchCandidates = useCallback(
             }}
           >
             My connections
+
             {totalPending > 0 && (
-              <span className="nav-badge">{totalPending}</span>
+              <span className="nav-badge">
+                {totalPending}
+              </span>
             )}
           </button>
         </nav>
@@ -2264,11 +2415,19 @@ const searchCandidates = useCallback(
         <div className="header-right">
           <div className="company-chip">
             <span className="company-avatar">
-              {activeRecruiterCompany.charAt(0).toUpperCase()}
+              {activeRecruiterCompany
+                .charAt(0)
+                .toUpperCase()}
             </span>
+
             <span>
-              <small>Recruiter #{activeRecruiterId}</small>
-              <strong>{activeRecruiterCompany}</strong>
+              <small>
+                Recruiter #{activeRecruiterId}
+              </small>
+
+              <strong>
+                {activeRecruiterCompany}
+              </strong>
             </span>
           </div>
 
@@ -2276,8 +2435,11 @@ const searchCandidates = useCallback(
             type="button"
             className="icon-button"
             onClick={() => {
-              if (settingsOpen) closeSettings()
-              else openSettings()
+              if (settingsOpen) {
+                closeSettings()
+              } else {
+                openSettings()
+              }
             }}
             aria-label="Open settings"
           >
@@ -2295,29 +2457,51 @@ const searchCandidates = useCallback(
           {settingsVisible && (
             <div
               className={`settings-popover ${
-                settingsOpen ? 'settings-popover-open' : 'settings-popover-closing'
+                settingsOpen
+                  ? 'settings-popover-open'
+                  : 'settings-popover-closing'
               }`}
               ref={settingsRef}
             >
               <div className="settings-popover-title">
                 <span>Preferences</span>
-                <button type="button" onClick={closeSettings}>×</button>
+
+                <button
+                  type="button"
+                  onClick={closeSettings}
+                >
+                  ×
+                </button>
               </div>
 
               <div className="settings-row">
                 <span>Theme</span>
+
                 <div className="segmented">
                   <button
                     type="button"
-                    className={theme === 'light' ? 'selected' : ''}
-                    onClick={() => setTheme('light')}
+                    className={
+                      theme === 'light'
+                        ? 'selected'
+                        : ''
+                    }
+                    onClick={() =>
+                      setTheme('light')
+                    }
                   >
                     Light
                   </button>
+
                   <button
                     type="button"
-                    className={theme === 'dark' ? 'selected' : ''}
-                    onClick={() => setTheme('dark')}
+                    className={
+                      theme === 'dark'
+                        ? 'selected'
+                        : ''
+                    }
+                    onClick={() =>
+                      setTheme('dark')
+                    }
                   >
                     Dark
                   </button>
@@ -2326,13 +2510,26 @@ const searchCandidates = useCallback(
 
               <div className="settings-row">
                 <span>Text size</span>
+
                 <div className="segmented">
-                  {(['small', 'medium', 'large'] as FontSize[]).map((size) => (
+                  {(
+                    [
+                      'small',
+                      'medium',
+                      'large',
+                    ] as FontSize[]
+                  ).map((size) => (
                     <button
                       type="button"
                       key={size}
-                      className={fontSize === size ? 'selected' : ''}
-                      onClick={() => setFontSize(size)}
+                      className={
+                        fontSize === size
+                          ? 'selected'
+                          : ''
+                      }
+                      onClick={() =>
+                        setFontSize(size)
+                      }
                     >
                       {size[0].toUpperCase()}
                     </button>
@@ -2343,10 +2540,19 @@ const searchCandidates = useCallback(
               <button
                 type="button"
                 className="settings-toggle"
-                onClick={() => setAnimationsEnabled((value) => !value)}
+                onClick={() =>
+                  setAnimationsEnabled(
+                    (value) => !value,
+                  )
+                }
               >
                 <span>Motion</span>
-                <b>{animationsEnabled ? 'On' : 'Off'}</b>
+
+                <b>
+                  {animationsEnabled
+                    ? 'On'
+                    : 'Off'}
+                </b>
               </button>
             </div>
           )}
@@ -2356,41 +2562,73 @@ const searchCandidates = useCallback(
       <main className="page">
         {activePage === 'search' ? (
           <>
-            <section className="hero-section" id="discover">
+            <section
+              className="hero-section"
+              id="discover"
+            >
               <div className="gradient-ribbon ribbon-one" />
               <div className="gradient-ribbon ribbon-two" />
 
               <div className="hero-copy">
-                <p className="eyebrow">RECRUITER WORKSPACE / 2026</p>
+                <p className="eyebrow">
+                  RECRUITER WORKSPACE / 2026
+                </p>
+
                 <h1>
                   Discover
                   <br />
                   <em>exceptional</em> talent.
                 </h1>
+
                 <p className="hero-description">
-                  Search verified student profiles by capability, location,
-                  domain, AI score and proof of work.
+                  Search verified student profiles
+                  by capability, location, domain,
+                  AI score and proof of work.
                 </p>
 
                 <div className="hero-meta">
                   <span>
-                    <b>{candidates.length}</b> visible candidates
+                    <b>
+                      {candidates.length}
+                    </b>{' '}
+                    visible candidates
                   </span>
+
                   <span>•</span>
-                  <span>Average match <b>{averageMatchScore}</b></span>
+
+                  <span>
+                    Average match{' '}
+                    <b>
+                      {averageMatchScore}
+                    </b>
+                  </span>
                 </div>
               </div>
 
               <div className="hero-feature-card">
-                <div className="feature-label">HIREZONE SIGNAL</div>
-                <div className="feature-number">{averageMatchScore || '—'}</div>
-                <div className="feature-title">average match signal</div>
+                <div className="feature-label">
+                  HIREZONE SIGNAL
+                </div>
+
+                <div className="feature-number">
+                  {averageMatchScore || '—'}
+                </div>
+
+                <div className="feature-title">
+                  average match signal
+                </div>
+
                 <p>
-                  Candidate discovery combines profile evidence, skills,
-                  projects and challenge relevance.
+                  Candidate discovery combines
+                  profile evidence, skills,
+                  projects and challenge
+                  relevance.
                 </p>
+
                 <div className="feature-line">
-                  <span>Talent intelligence</span>
+                  <span>
+                    Talent intelligence
+                  </span>
                   <span>↗</span>
                 </div>
               </div>
@@ -2399,9 +2637,15 @@ const searchCandidates = useCallback(
             <section className="filter-section">
               <div className="section-heading">
                 <div>
-                  <span className="section-kicker">SEARCH</span>
-                  <h2>Find the right profile.</h2>
+                  <span className="section-kicker">
+                    SEARCH
+                  </span>
+
+                  <h2>
+                    Find the right profile.
+                  </h2>
                 </div>
+
                 <button
                   type="button"
                   className="plain-action"
@@ -2413,156 +2657,275 @@ const searchCandidates = useCallback(
 
               <div className="filter-panel">
                 <div className="filter-field wide">
-                  <label>Challenge</label>
+                  <label>
+                    Challenge
+                  </label>
+
                   <select
                     value={
                       selectedChallengeId
-                        ? String(selectedChallengeId)
+                        ? String(
+                            selectedChallengeId,
+                          )
                         : ''
                     }
                     onChange={(event) => {
-                      const value = event.target.value
+                      const value =
+                        event.target.value
 
                       if (!value) {
-                        setSelectedChallengeId(null)
-                        setSelectedChallenge(null)
-                        setProjectCandidates([])
-                        void searchCandidates(filters)
+                        setSelectedChallengeId(
+                          null,
+                        )
+
+                        void searchCandidates(
+                          filters,
+                        )
+
                         return
                       }
 
-                      const challengeId = Number(value)
-                      const challenge =
-                        challenges.find(
-                          (item) => item.challenge_id === challengeId,
-                        ) ?? null
+                      const challengeId =
+                        Number(value)
 
-                      setSelectedChallenge(challenge)
-                      void loadChallengeCandidates(challengeId)
+                      void loadChallengeCandidates(
+                        challengeId,
+                      )
                     }}
                   >
-                    <option value="">All candidates</option>
-                    {challenges.map((challenge) => (
-                      <option
-                        key={challenge.challenge_id}
-                        value={challenge.challenge_id}
-                      >
-                        {challenge.challenge_title}
-                      </option>
-                    ))}
+                    <option value="">
+                      All candidates
+                    </option>
+
+                    {challenges.map(
+                      (challenge) => (
+                        <option
+                          key={
+                            challenge.challenge_id
+                          }
+                          value={
+                            challenge.challenge_id
+                          }
+                        >
+                          {
+                            challenge.challenge_title
+                          }
+                        </option>
+                      ),
+                    )}
                   </select>
                 </div>
 
                 <div className="filter-field">
-                  <label>Skill</label>
+                  <label>
+                    Skill
+                  </label>
+
                   <select
                     value=""
                     onChange={(event) => {
-                      const selectedSkill = event.target.value
+                      const selectedSkill =
+                        event.target.value
+
                       if (
                         selectedSkill &&
-                        !filters.skill.includes(selectedSkill)
+                        !filters.skill.includes(
+                          selectedSkill,
+                        )
                       ) {
-                        setFilters((previous) => ({
-                          ...previous,
-                          skill: [...previous.skill, selectedSkill],
-                        }))
+                        setFilters(
+                          (previous) => ({
+                            ...previous,
+                            skill: [
+                              ...previous.skill,
+                              selectedSkill,
+                            ],
+                          }),
+                        )
                       }
                     }}
                   >
-                    <option value="">Add skill</option>
-                    {skillOptions.map((skill) => (
-                      <option key={skill} value={skill}>
-                        {skill}
-                      </option>
-                    ))}
+                    <option value="">
+                      Add skill
+                    </option>
+
+                    {skillOptions.map(
+                      (skill) => (
+                        <option
+                          key={skill}
+                          value={skill}
+                        >
+                          {skill}
+                        </option>
+                      ),
+                    )}
                   </select>
                 </div>
 
                 <div className="filter-field">
-                  <label>Domain</label>
+                  <label>
+                    Domain
+                  </label>
+
                   <select
                     value=""
                     onChange={(event) => {
-                      const selectedDomain = event.target.value
+                      const selectedDomain =
+                        event.target.value
+
                       if (
                         selectedDomain &&
-                        !filters.domain.includes(selectedDomain)
+                        !filters.domain.includes(
+                          selectedDomain,
+                        )
                       ) {
-                        setFilters((previous) => ({
-                          ...previous,
-                          domain: [...previous.domain, selectedDomain],
-                        }))
+                        setFilters(
+                          (previous) => ({
+                            ...previous,
+                            domain: [
+                              ...previous.domain,
+                              selectedDomain,
+                            ],
+                          }),
+                        )
                       }
                     }}
                   >
-                    <option value="">Add domain</option>
-                    {domainOptions.map((domain) => (
-                      <option key={domain} value={domain}>
-                        {domain}
-                      </option>
-                    ))}
+                    <option value="">
+                      Add domain
+                    </option>
+
+                    {domainOptions.map(
+                      (domain) => (
+                        <option
+                          key={domain}
+                          value={domain}
+                        >
+                          {domain}
+                        </option>
+                      ),
+                    )}
                   </select>
                 </div>
 
                 <div className="filter-field">
-                  <label>District</label>
+                  <label>
+                    District
+                  </label>
+
                   <select
-                    value={filters.district}
+                    value={
+                      filters.district
+                    }
                     onChange={(event) =>
-                      setFilters((previous) => ({
-                        ...previous,
-                        district: event.target.value,
-                      }))
+                      setFilters(
+                        (previous) => ({
+                          ...previous,
+                          district:
+                            event.target.value,
+                        }),
+                      )
                     }
                   >
-                    <option value="">All districts</option>
-                    <option value="Mumbai City">Mumbai City</option>
-                    <option value="Mumbai Suburban">Mumbai Suburban</option>
-                    <option value="Pune">Pune</option>
-                    <option value="Thane">Thane</option>
-                    <option value="Nagpur">Nagpur</option>
-                    <option value="Nashik">Nashik</option>
+                    <option value="">
+                      All districts
+                    </option>
+
+                    <option value="Mumbai City">
+                      Mumbai City
+                    </option>
+
+                    <option value="Mumbai Suburban">
+                      Mumbai Suburban
+                    </option>
+
+                    <option value="Pune">
+                      Pune
+                    </option>
+
+                    <option value="Thane">
+                      Thane
+                    </option>
+
+                    <option value="Nagpur">
+                      Nagpur
+                    </option>
+
+                    <option value="Nashik">
+                      Nashik
+                    </option>
+
                     <option value="Chhatrapati Sambhajinagar">
                       Chhatrapati Sambhajinagar
                     </option>
-                    <option value="Solapur">Solapur</option>
-                    <option value="Kolhapur">Kolhapur</option>
-                    <option value="Satara">Satara</option>
-                    <option value="Sangli">Sangli</option>
-                    <option value="Ahmednagar">Ahmednagar</option>
+
+                    <option value="Solapur">
+                      Solapur
+                    </option>
+
+                    <option value="Kolhapur">
+                      Kolhapur
+                    </option>
+
+                    <option value="Satara">
+                      Satara
+                    </option>
+
+                    <option value="Sangli">
+                      Sangli
+                    </option>
+
+                    <option value="Ahmednagar">
+                      Ahmednagar
+                    </option>
                   </select>
                 </div>
 
                 <div className="filter-field">
-                  <label>Minimum AI score</label>
+                  <label>
+                    Minimum AI score
+                  </label>
+
                   <input
                     type="number"
                     min={0}
                     max={100}
                     placeholder="e.g. 70"
-                    value={filters.minScore}
+                    value={
+                      filters.minScore
+                    }
                     onChange={(event) =>
-                      setFilters((previous) => ({
-                        ...previous,
-                        minScore: event.target.value,
-                      }))
+                      setFilters(
+                        (previous) => ({
+                          ...previous,
+                          minScore:
+                            event.target.value,
+                        }),
+                      )
                     }
                   />
                 </div>
 
                 <div className="filter-field">
-                  <label>Minimum badges</label>
+                  <label>
+                    Minimum badges
+                  </label>
+
                   <input
                     type="number"
                     min={0}
                     placeholder="e.g. 3"
-                    value={filters.minBadges}
+                    value={
+                      filters.minBadges
+                    }
                     onChange={(event) =>
-                      setFilters((previous) => ({
-                        ...previous,
-                        minBadges: event.target.value,
-                      }))
+                      setFilters(
+                        (previous) => ({
+                          ...previous,
+                          minBadges:
+                            event.target.value,
+                        }),
+                      )
                     }
                   />
                 </div>
@@ -2573,94 +2936,168 @@ const searchCandidates = useCallback(
                   onClick={handleSearch}
                   disabled={loading}
                 >
-                  {loading ? 'Searching…' : 'Search candidates'} <span>→</span>
+                  {loading
+                    ? 'Searching…'
+                    : 'Search candidates'}{' '}
+                  <span>→</span>
                 </button>
 
-                {(filters.skill.length > 0 || filters.domain.length > 0) && (
+                {(
+                  filters.skill.length >
+                    0 ||
+                  filters.domain.length >
+                    0
+                ) && (
                   <div className="active-filter-row">
-                    {filters.skill.map((skill) => (
-                      <button
-                        type="button"
-                        className="filter-pill"
-                        key={skill}
-                        onClick={() =>
-                          setFilters((previous) => ({
-                            ...previous,
-                            skill: previous.skill.filter(
-                              (item) => item !== skill,
-                            ),
-                          }))
-                        }
-                      >
-                        {skill} ×
-                      </button>
-                    ))}
-                    {filters.domain.map((domain) => (
-                      <button
-                        type="button"
-                        className="filter-pill"
-                        key={domain}
-                        onClick={() =>
-                          setFilters((previous) => ({
-                            ...previous,
-                            domain: previous.domain.filter(
-                              (item) => item !== domain,
-                            ),
-                          }))
-                        }
-                      >
-                        {domain} ×
-                      </button>
-                    ))}
+                    {filters.skill.map(
+                      (skill) => (
+                        <button
+                          type="button"
+                          className="filter-pill"
+                          key={skill}
+                          onClick={() =>
+                            setFilters(
+                              (previous) => ({
+                                ...previous,
+                                skill:
+                                  previous.skill.filter(
+                                    (item) =>
+                                      item !==
+                                      skill,
+                                  ),
+                              }),
+                            )
+                          }
+                        >
+                          {skill} ×
+                        </button>
+                      ),
+                    )}
+
+                    {filters.domain.map(
+                      (domain) => (
+                        <button
+                          type="button"
+                          className="filter-pill"
+                          key={domain}
+                          onClick={() =>
+                            setFilters(
+                              (previous) => ({
+                                ...previous,
+                                domain:
+                                  previous.domain.filter(
+                                    (item) =>
+                                      item !==
+                                      domain,
+                                  ),
+                              }),
+                            )
+                          }
+                        >
+                          {domain} ×
+                        </button>
+                      ),
+                    )}
                   </div>
                 )}
               </div>
             </section>
 
-            <section className="highlights-section" id="proof">
+            <section
+              className="highlights-section"
+              id="proof"
+            >
               <div className="section-heading compact">
                 <div>
-                  <span className="section-kicker">RECENT HIGHLIGHTS</span>
-                  <h2>Signals worth exploring.</h2>
+                  <span className="section-kicker">
+                    RECENT HIGHLIGHTS
+                  </span>
+
+                  <h2>
+                    Signals worth exploring.
+                  </h2>
                 </div>
               </div>
 
               <div className="highlight-track">
                 <article className="highlight-card cyan">
-                  <span>01 / VERIFIED</span>
-                  <h3>Proof-first profiles</h3>
+                  <span>
+                    01 / VERIFIED
+                  </span>
+
+                  <h3>
+                    Proof-first profiles
+                  </h3>
+
                   <p>
-                    Inspect projects, skills and repository evidence before
+                    Inspect projects, skills and
+                    repository evidence before
                     starting a conversation.
                   </p>
-                  <b>Explore profiles →</b>
+
+                  <b>
+                    Explore profiles →
+                  </b>
                 </article>
+
                 <article className="highlight-card blue">
-                  <span>02 / MATCHING</span>
-                  <h3>Challenge relevance</h3>
+                  <span>
+                    02 / MATCHING
+                  </span>
+
+                  <h3>
+                    Challenge relevance
+                  </h3>
+
                   <p>
-                    See candidates connected to the challenges your company
+                    See candidates connected to
+                    the challenges your company
                     publishes.
                   </p>
-                  <b>Open challenges →</b>
+
+                  <b>
+                    Open challenges →
+                  </b>
                 </article>
+
                 <article className="highlight-card violet">
-                  <span>03 / SIGNAL</span>
-                  <h3>AI score + badges</h3>
+                  <span>
+                    03 / SIGNAL
+                  </span>
+
+                  <h3>
+                    AI score + badges
+                  </h3>
+
                   <p>
-                    Set minimum thresholds and keep low-signal profiles out of
-                    the result set.
+                    Set minimum thresholds and
+                    keep low-signal profiles out
+                    of the result set.
                   </p>
-                  <b>Set thresholds →</b>
+
+                  <b>
+                    Set thresholds →
+                  </b>
                 </article>
+
                 <article className="highlight-card ink">
-                  <span>04 / RELATIONSHIPS</span>
-                  <h3>Direct connections</h3>
+                  <span>
+                    04 / RELATIONSHIPS
+                  </span>
+
+                  <h3>
+                    Direct connections
+                  </h3>
+
                   <p>
-                    Send a targeted request and track its status from one
+                    Send a targeted request and
+                    track its status from one
                     recruiter workspace.
                   </p>
-                  <b>View connections →</b>
+
+                  <b>
+                    View connections →
+                  </b>
                 </article>
               </div>
             </section>
@@ -2680,9 +3117,15 @@ const searchCandidates = useCallback(
             <section className="results-section">
               <div className="section-heading">
                 <div>
-                  <span className="section-kicker">CANDIDATE INDEX</span>
-                  <h2>Candidate results.</h2>
+                  <span className="section-kicker">
+                    CANDIDATE INDEX
+                  </span>
+
+                  <h2>
+                    Candidate results.
+                  </h2>
                 </div>
+
                 <span className="result-count">
                   {candidates.length} profiles
                 </span>
@@ -2691,140 +3134,278 @@ const searchCandidates = useCallback(
               {loading ? (
                 <div className="empty-state loading-state">
                   <div className="loader" />
-                  <h3>Finding relevant profiles…</h3>
-                  <p>Applying your search signals.</p>
-                </div>
-              ) : candidates.length === 0 ? (
-                <div className="empty-state">
-                  <span className="empty-icon">○</span>
-                  <h3>No matching candidates.</h3>
+
+                  <h3>
+                    Finding relevant profiles…
+                  </h3>
+
                   <p>
-                    Try removing a threshold or changing your search
+                    Applying your search signals.
+                  </p>
+                </div>
+              ) : candidates.length ===
+                0 ? (
+                <div className="empty-state">
+                  <span className="empty-icon">
+                    ○
+                  </span>
+
+                  <h3>
+                    No matching candidates.
+                  </h3>
+
+                  <p>
+                    Try removing a threshold
+                    or changing your search
                     criteria.
                   </p>
-                  <button type="button" className="dark-pill-button" onClick={clearFilters}>
+
+                  <button
+                    type="button"
+                    className="dark-pill-button"
+                    onClick={clearFilters}
+                  >
                     Reset filters →
                   </button>
                 </div>
               ) : (
                 <div className="candidate-grid">
-                  {candidates.map((candidate, index) => (
-                    <article
-                      className="candidate-card-new"
-                      key={`${candidate.student_id}-${candidate.project_name}-${index}`}
-                    >
-                      <div className="candidate-card-header">
-                        <div className="candidate-identity">
-                          <div className="large-avatar">
-                            {candidate.student_name?.charAt(0) ?? '?'}
+                  {candidates.map(
+                    (
+                      candidate,
+                      index,
+                    ) => (
+                      <article
+                        className="candidate-card-new"
+                        key={`${candidate.student_id}-${candidate.project_name}-${index}`}
+                      >
+                        <div className="candidate-card-header">
+                          <div className="candidate-identity">
+                            <div className="large-avatar">
+                              {candidate.student_name?.charAt(
+                                0,
+                              ) ?? '?'}
+                            </div>
+
+                            <div>
+                              <span className="card-index">
+                                PROFILE /{' '}
+                                {String(
+                                  index + 1,
+                                ).padStart(
+                                  2,
+                                  '0',
+                                )}
+                              </span>
+
+                              <h3>
+                                {
+                                  candidate.student_name
+                                }
+                              </h3>
+
+                              <p>
+                                {candidate.location ||
+                                  candidate.district ||
+                                  'Location not listed'}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <span className="card-index">
-                              PROFILE / {String(index + 1).padStart(2, '0')}
+
+                          <div className="match-block">
+                            <span>
+                              Match
                             </span>
-                            <h3>{candidate.student_name}</h3>
+
+                            <strong>
+                              {formatNumber(
+                                candidate.relevance_score,
+                              )}
+                            </strong>
+                          </div>
+                        </div>
+
+                        <div className="candidate-card-body">
+                          <div className="candidate-context">
+                            <span>
+                              EDUCATION
+                            </span>
+
+                            <strong>
+                              {candidate.college_name ||
+                                '—'}
+                            </strong>
+
                             <p>
-                              {candidate.location || candidate.district || 'Location not listed'}
+                              {candidate.education ||
+                                '—'}
+                            </p>
+                          </div>
+
+                          <div className="candidate-context">
+                            <span>
+                              PROJECT
+                            </span>
+
+                            <strong>
+                              {candidate.project_name ||
+                                '—'}
+                            </strong>
+
+                            <p>
+                              {candidate.domain ||
+                                '—'}
                             </p>
                           </div>
                         </div>
 
-                        <div className="match-block">
-                          <span>Match</span>
-                          <strong>
-                            {formatNumber(candidate.relevance_score)}
-                          </strong>
+                        <div className="candidate-tags">
+                          {(
+                            candidate.skills ??
+                            []
+                          )
+                            .slice(0, 5)
+                            .map(
+                              (skill) => (
+                                <span
+                                  key={`${candidate.student_id}-${skill}`}
+                                >
+                                  {skill}
+                                </span>
+                              ),
+                            )}
                         </div>
-                      </div>
 
-                      <div className="candidate-card-body">
-                        <div className="candidate-context">
-                          <span>EDUCATION</span>
-                          <strong>{candidate.college_name || '—'}</strong>
-                          <p>{candidate.education || '—'}</p>
+                        <div className="candidate-metrics">
+                          <div>
+                            <span>
+                              AI score
+                            </span>
+
+                            <strong>
+                              {formatNumber(
+                                candidate.ai_test_score,
+                              )}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span>
+                              Badges
+                            </span>
+
+                            <strong>
+                              {formatNumber(
+                                candidate.badges_earned,
+                              )}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span>
+                              Challenges
+                            </span>
+
+                            <strong>
+                              {formatNumber(
+                                candidate.matched_challenges,
+                              )}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span>
+                              District
+                            </span>
+
+                            <strong>
+                              {candidate.district ||
+                                '—'}
+                            </strong>
+                          </div>
                         </div>
 
-                        <div className="candidate-context">
-                          <span>PROJECT</span>
-                          <strong>{candidate.project_name || '—'}</strong>
-                          <p>{candidate.domain || '—'}</p>
-                        </div>
-                      </div>
+                        {Number(
+                          candidate.matched_challenges ??
+                            0,
+                        ) > 0 && (
+                          <div className="challenge-line">
+                            <span>↗</span>
 
-                      <div className="candidate-tags">
-                        {(candidate.skills ?? []).slice(0, 5).map((skill) => (
-                          <span key={`${candidate.student_id}-${skill}`}>
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="candidate-metrics">
-                        <div>
-                          <span>AI score</span>
-                          <strong>{formatNumber(candidate.ai_test_score)}</strong>
-                        </div>
-                        <div>
-                          <span>Badges</span>
-                          <strong>{formatNumber(candidate.badges_earned)}</strong>
-                        </div>
-                        <div>
-                          <span>Challenges</span>
-                          <strong>{formatNumber(candidate.matched_challenges)}</strong>
-                        </div>
-                        <div>
-                          <span>District</span>
-                          <strong>{candidate.district || '—'}</strong>
-                        </div>
-                      </div>
-
-                      {Number(candidate.matched_challenges ?? 0) > 0 && (
-                        <div className="challenge-line">
-                          <span>↗</span>
-                          Matches {candidate.matched_challenges} recruiter challenge
-                          {Number(candidate.matched_challenges ?? 0) > 1 ? 's' : ''}
-                        </div>
-                      )}
-
-                      <div className="candidate-card-footer">
-                        <button
-                          type="button"
-                          className="outline-action"
-                          onClick={() =>
-                            void loadCandidateProof(candidate.student_id)
-                          }
-                          disabled={proofLoading}
-                        >
-                          View proof of work <span>→</span>
-                        </button>
-
-                        {sentStudentIds.has(candidate.student_id) && (
-                          <span className="pending-chip">
-                            Request pending ✓
-                          </span>
+                            Matches{' '}
+                            {
+                              candidate.matched_challenges
+                            }{' '}
+                            recruiter challenge
+                            {Number(
+                              candidate.matched_challenges ??
+                                0,
+                            ) > 1
+                              ? 's'
+                              : ''}
+                          </div>
                         )}
-                      </div>
-                    </article>
-                  ))}
+
+                        <div className="candidate-card-footer">
+                          <button
+                            type="button"
+                            className="outline-action"
+                            onClick={() =>
+                              void loadCandidateProof(
+                                candidate.student_id,
+                              )
+                            }
+                            disabled={
+                              proofLoading
+                            }
+                          >
+                            View proof of work{' '}
+                            <span>→</span>
+                          </button>
+
+                          {sentStudentIds.has(
+                            candidate.student_id,
+                          ) && (
+                            <span className="pending-chip">
+                              Request pending ✓
+                            </span>
+                          )}
+                        </div>
+                      </article>
+                    ),
+                  )}
                 </div>
               )}
             </section>
           </>
         ) : (
-          <section className="connections-section" id="companies">
+          <section
+            className="connections-section"
+            id="companies"
+          >
             <div className="connections-hero">
               <div>
-                <span className="section-kicker">RELATIONSHIP DESK</span>
-                <h1>My connections.</h1>
+                <span className="section-kicker">
+                  RELATIONSHIP DESK
+                </span>
+
+                <h1>
+                  My connections.
+                </h1>
+
                 <p>
-                  Track every candidate request from first message to
-                  accepted connection.
+                  Track every candidate request
+                  from first message to accepted
+                  connection.
                 </p>
               </div>
+
               <button
                 type="button"
                 className="dark-pill-button"
-                onClick={() => void loadConnections()}
+                onClick={() =>
+                  void loadConnections()
+                }
               >
                 Refresh requests ↻
               </button>
@@ -2832,37 +3413,76 @@ const searchCandidates = useCallback(
 
             <div className="connection-stat-grid">
               <div>
-                <span>Total requests</span>
-                <strong>{connections.length}</strong>
-              </div>
-              <div>
-                <span>Sent / viewed</span>
-                <strong>{totalPending}</strong>
-              </div>
-              <div>
-                <span>Accepted</span>
-                <strong>{totalAccepted}</strong>
-              </div>
-              <div>
-                <span>Rejected</span>
+                <span>
+                  Total requests
+                </span>
+
                 <strong>
-                  {connections.filter((item) => item.status === 'Rejected').length}
+                  {connections.length}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Sent / viewed
+                </span>
+
+                <strong>
+                  {totalPending}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Accepted
+                </span>
+
+                <strong>
+                  {totalAccepted}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Rejected
+                </span>
+
+                <strong>
+                  {
+                    connections.filter(
+                      (item) =>
+                        item.status ===
+                        'Rejected',
+                    ).length
+                  }
                 </strong>
               </div>
             </div>
 
             <div className="connection-filter-bar">
               <span>FILTER</span>
-              {['All', 'Sent', 'Viewed', 'Accepted', 'Rejected'].map((status) => (
+
+              {[
+                'All',
+                'Sent',
+                'Viewed',
+                'Accepted',
+                'Rejected',
+              ].map((status) => (
                 <button
                   type="button"
                   key={status}
                   className={
-                    connectionStatusFilter === status
+                    connectionStatusFilter ===
+                    status
                       ? 'connection-filter active'
                       : 'connection-filter'
                   }
-                  onClick={() => setConnectionStatusFilter(status)}
+                  onClick={() =>
+                    setConnectionStatusFilter(
+                      status,
+                    )
+                  }
                 >
                   {status}
                 </button>
@@ -2872,68 +3492,126 @@ const searchCandidates = useCallback(
             {connectionsLoading ? (
               <div className="empty-state">
                 <div className="loader" />
-                <h3>Loading your connections…</h3>
+
+                <h3>
+                  Loading your connections…
+                </h3>
               </div>
-            ) : filteredConnections.length === 0 ? (
+            ) : filteredConnections.length ===
+              0 ? (
               <div className="empty-state">
-                <span className="empty-icon">↗</span>
-                <h3>No connections in this view.</h3>
-                <p>Send a request from a candidate's proof-of-work profile.</p>
+                <span className="empty-icon">
+                  ↗
+                </span>
+
+                <h3>
+                  No connections in this view.
+                </h3>
+
+                <p>
+                  Send a request from a
+                  candidate's proof-of-work
+                  profile.
+                </p>
+
                 <button
                   type="button"
                   className="dark-pill-button"
-                  onClick={() => setActivePage('search')}
+                  onClick={() =>
+                    setActivePage('search')
+                  }
                 >
                   Discover talent →
                 </button>
               </div>
             ) : (
               <div className="connections-list-new">
-                {filteredConnections.map((connection) => (
-                  <article
-                    className="connection-card-new"
-                    key={connection.connect_id}
-                  >
-                    <div className="connection-avatar">
-                      {connection.student_name?.charAt(0) ?? '?'}
-                    </div>
-
-                    <div className="connection-main">
-                      <div className="connection-name-row">
-                        <div>
-                          <span>CONNECTION / #{connection.connect_id}</span>
-                          <h3>{connection.student_name}</h3>
-                          <p>{connection.student_email || 'Email not listed'}</p>
-                        </div>
-                        <span
-                          className={`connection-status ${String(
-                            connection.status,
-                          ).toLowerCase()}`}
-                        >
-                          {connection.status}
-                        </span>
+                {filteredConnections.map(
+                  (connection) => (
+                    <article
+                      className="connection-card-new"
+                      key={
+                        connection.connect_id
+                      }
+                    >
+                      <div className="connection-avatar">
+                        {connection.student_name?.charAt(
+                          0,
+                        ) ?? '?'}
                       </div>
 
-                      <div className="connection-meta">
-                        <div>
-                          <span>Company</span>
-                          <strong>{connection.company_name}</strong>
-                        </div>
-                        <div>
-                          <span>Challenge</span>
-                          <strong>
-                            {connection.challenge_title || 'General connection'}
-                          </strong>
-                        </div>
-                      </div>
+                      <div className="connection-main">
+                        <div className="connection-name-row">
+                          <div>
+                            <span>
+                              CONNECTION / #
+                              {
+                                connection.connect_id
+                              }
+                            </span>
 
-                      <div className="connection-message-new">
-                        <span>MESSAGE</span>
-                        <p>{connection.message || 'No message provided.'}</p>
+                            <h3>
+                              {
+                                connection.student_name
+                              }
+                            </h3>
+
+                            <p>
+                              {connection.student_email ||
+                                'Email not listed'}
+                            </p>
+                          </div>
+
+                          <span
+                            className={`connection-status ${String(
+                              connection.status,
+                            ).toLowerCase()}`}
+                          >
+                            {
+                              connection.status
+                            }
+                          </span>
+                        </div>
+
+                        <div className="connection-meta">
+                          <div>
+                            <span>
+                              Company
+                            </span>
+
+                            <strong>
+                              {
+                                connection.company_name
+                              }
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span>
+                              Challenge
+                            </span>
+
+                            <strong>
+                              {connection.challenge_title ||
+                                'General connection'}
+                            </strong>
+                          </div>
+                        </div>
+
+                        <div className="connection-message-new">
+                          <span>
+                            MESSAGE
+                          </span>
+
+                          <p>
+                            {connection.message ||
+                              'No message provided.'}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  ),
+                )}
               </div>
             )}
           </section>
@@ -2944,7 +3622,10 @@ const searchCandidates = useCallback(
         <div className="modal-overlay">
           <div className="minimal-loading">
             <div className="loader" />
-            <span>Loading verified proof…</span>
+
+            <span>
+              Loading verified proof…
+            </span>
           </div>
         </div>
       )}
@@ -2952,16 +3633,22 @@ const searchCandidates = useCallback(
       {selectedProof && (
         <div
           className="modal-overlay"
-          onClick={() => setSelectedProof(null)}
+          onClick={() =>
+            setSelectedProof(null)
+          }
         >
           <div
             className="proof-modal-new"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) =>
+              event.stopPropagation()
+            }
           >
             <button
               type="button"
               className="modal-close"
-              onClick={() => setSelectedProof(null)}
+              onClick={() =>
+                setSelectedProof(null)
+              }
             >
               ×
             </button>
@@ -2969,142 +3656,260 @@ const searchCandidates = useCallback(
             <div className="proof-modal-top">
               <div className="proof-identity">
                 <div className="proof-avatar-new">
-                  {selectedProof.student_name?.charAt(0) ?? '?'}
+                  {selectedProof.student_name?.charAt(
+                    0,
+                  ) ?? '?'}
                 </div>
+
                 <div>
-                  <span className="section-kicker">VERIFIED PROFILE</span>
-                  <h2>{selectedProof.student_name}</h2>
+                  <span className="section-kicker">
+                    VERIFIED PROFILE
+                  </span>
+
+                  <h2>
+                    {selectedProof.student_name}
+                  </h2>
+
                   <p>
-                    {selectedProof.location} · {selectedProof.email}
+                    {selectedProof.location} ·{' '}
+                    {selectedProof.email}
                   </p>
                 </div>
               </div>
+
               <div className="proof-score-new">
-                <span>Profile score</span>
-                <strong>{formatNumber(selectedProof.profile_score)}</strong>
+                <span>
+                  Profile score
+                </span>
+
+                <strong>
+                  {formatNumber(
+                    selectedProof.profile_score,
+                  )}
+                </strong>
               </div>
             </div>
 
             {proofError && (
-              <div className="form-error modal-error">{proofError}</div>
+              <div className="form-error modal-error">
+                {proofError}
+              </div>
             )}
 
             <div className="proof-grid">
               <div className="proof-block">
-                <span>EDUCATION</span>
-                <h3>{selectedProof.education || '—'}</h3>
-                <p>{selectedProof.college_name || '—'}</p>
+                <span>
+                  EDUCATION
+                </span>
+
+                <h3>
+                  {selectedProof.education ||
+                    '—'}
+                </h3>
+
+                <p>
+                  {selectedProof.college_name ||
+                    '—'}
+                </p>
+
                 <small>
-                  Graduation: {selectedProof.graduation_year ?? '—'}
+                  Graduation:{' '}
+                  {selectedProof.graduation_year ??
+                    '—'}
                 </small>
               </div>
 
               <div className="proof-block">
-                <span>PROJECT / DOMAIN</span>
-                <h3>{selectedProof.project_name || '—'}</h3>
-                <p>{selectedProof.domain || '—'}</p>
+                <span>
+                  PROJECT / DOMAIN
+                </span>
+
+                <h3>
+                  {selectedProof.project_name ||
+                    '—'}
+                </h3>
+
+                <p>
+                  {selectedProof.domain ||
+                    '—'}
+                </p>
               </div>
             </div>
 
             <div className="proof-block full">
               <div className="proof-block-heading">
                 <div>
-                  <span>PROOF OF WORK</span>
-                  <h3>Repository evidence</h3>
+                  <span>
+                    PROOF OF WORK
+                  </span>
+
+                  <h3>
+                    Repository evidence
+                  </h3>
                 </div>
-                <span className="verified-label">Verified signal</span>
+
+                <span className="verified-label">
+                  Verified signal
+                </span>
               </div>
 
               {selectedProof.github_repos &&
-              selectedProof.github_repos.length > 0 ? (
+              selectedProof.github_repos.length >
+                0 ? (
                 <div className="repo-list-new">
-                  {selectedProof.github_repos.map((repo, index) => (
-                    <div className="repo-row" key={`${repo.github_url}-${index}`}>
-                      <div>
-                        <strong>{repo.project_name}</strong>
-                        <p>GitHub repository</p>
-                      </div>
-                      <div className="repo-actions">
-                        {repo.live_demo_url && (
+                  {selectedProof.github_repos.map(
+                    (repo, index) => (
+                      <div
+                        className="repo-row"
+                        key={`${repo.github_url}-${index}`}
+                      >
+                        <div>
+                          <strong>
+                            {
+                              repo.project_name
+                            }
+                          </strong>
+
+                          <p>
+                            GitHub repository
+                          </p>
+                        </div>
+
+                        <div className="repo-actions">
+                          {repo.live_demo_url && (
+                            <a
+                              href={
+                                repo.live_demo_url
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Live demo ↗
+                            </a>
+                          )}
+
                           <a
-                            href={repo.live_demo_url}
+                            href={
+                              repo.github_url
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            Live demo ↗
+                            Repository ↗
                           </a>
-                        )}
-                        <a
-                          href={repo.github_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Repository ↗
-                        </a>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               ) : (
                 <p className="muted-copy">
-                  GitHub repository not provided for this project.
+                  GitHub repository not provided
+                  for this project.
                 </p>
               )}
             </div>
 
             <div className="proof-block full">
-              <span>SKILLS</span>
+              <span>
+                SKILLS
+              </span>
+
               <div className="proof-tags">
-                {(selectedProof.skills ?? []).map((skill) => (
-                  <span key={skill}>{skill}</span>
+                {(
+                  selectedProof.skills ??
+                  []
+                ).map((skill) => (
+                  <span key={skill}>
+                    {skill}
+                  </span>
                 ))}
               </div>
             </div>
 
             <div className="proof-metrics-new">
               <div>
-                <span>AI test</span>
-                <strong>{formatNumber(selectedProof.ai_test_score)}</strong>
-              </div>
-              <div>
-                <span>Milestones</span>
+                <span>
+                  AI test
+                </span>
+
                 <strong>
-                  {formatNumber(selectedProof.milestones_completed)}
+                  {formatNumber(
+                    selectedProof.ai_test_score,
+                  )}
                 </strong>
               </div>
+
               <div>
-                <span>Blog posts</span>
-                <strong>{formatNumber(selectedProof.blog_posts_count)}</strong>
+                <span>
+                  Milestones
+                </span>
+
+                <strong>
+                  {formatNumber(
+                    selectedProof.milestones_completed,
+                  )}
+                </strong>
               </div>
+
               <div>
-                <span>Badges</span>
-                <strong>{formatNumber(selectedProof.badges_earned)}</strong>
+                <span>
+                  Blog posts
+                </span>
+
+                <strong>
+                  {formatNumber(
+                    selectedProof.blog_posts_count,
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Badges
+                </span>
+
+                <strong>
+                  {formatNumber(
+                    selectedProof.badges_earned,
+                  )}
+                </strong>
               </div>
             </div>
 
             <div className="proof-footer">
               <span>
-                {existingStatus === 'accepted'
+                {existingStatus ===
+                'accepted'
                   ? 'You are connected with this candidate.'
                   : 'Ready to start a conversation?'}
               </span>
+
               <button
                 type="button"
                 className="dark-pill-button"
                 onClick={openConnectModal}
                 disabled={
                   checkingExisting ||
-                  sentStudentIds.has(selectedProof.student_id) ||
-                  existingStatus === 'pending' ||
-                  existingStatus === 'accepted'
+                  sentStudentIds.has(
+                    selectedProof.student_id,
+                  ) ||
+                  existingStatus ===
+                    'pending' ||
+                  existingStatus ===
+                    'accepted'
                 }
               >
                 {checkingExisting
                   ? 'Checking…'
-                  : existingStatus === 'accepted'
+                  : existingStatus ===
+                      'accepted'
                     ? 'Connected ✓'
-                    : sentStudentIds.has(selectedProof.student_id) ||
-                        existingStatus === 'pending'
+                    : sentStudentIds.has(
+                          selectedProof.student_id,
+                        ) ||
+                        existingStatus ===
+                          'pending'
                       ? 'Request pending ✓'
                       : 'Connect with candidate →'}
               </button>
@@ -3113,98 +3918,167 @@ const searchCandidates = useCallback(
         </div>
       )}
 
-      {connectModalOpen && selectedProof && (
-        <div className="modal-overlay">
-          <div className="connect-modal-new">
-            <button
-              type="button"
-              className="modal-close"
-              onClick={() => setConnectModalOpen(false)}
-            >
-              ×
-            </button>
-
-            <span className="section-kicker">NEW CONNECTION</span>
-            <h2>Start a conversation.</h2>
-            <p className="connect-intro">
-              Send a focused message to <strong>{selectedProof.student_name}</strong>.
-            </p>
-
-            {connectError && (
-              <div className="form-error modal-error">{connectError}</div>
-            )}
-            {challengesError && (
-              <div className="form-error modal-error">{challengesError}</div>
-            )}
-
-            <label className="modal-field">
-              Related challenge
-              <select
-                value={selectedConnectChallengeId}
-                onChange={(event) =>
-                  setSelectedConnectChallengeId(event.target.value)
+      {connectModalOpen &&
+        selectedProof && (
+          <div className="modal-overlay">
+            <div className="connect-modal-new">
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() =>
+                  setConnectModalOpen(false)
                 }
-                disabled={challengesLoading}
               >
-                <option value="">
-                  {challengesLoading ? 'Loading challenges…' : 'General connection'}
-                </option>
-                {challenges.map((challenge) => (
-                  <option
-                    key={challenge.challenge_id}
-                    value={challenge.challenge_id}
-                  >
-                    {challenge.challenge_title}
+                ×
+              </button>
+
+              <span className="section-kicker">
+                NEW CONNECTION
+              </span>
+
+              <h2>
+                Start a conversation.
+              </h2>
+
+              <p className="connect-intro">
+                Send a focused message to{' '}
+                <strong>
+                  {selectedProof.student_name}
+                </strong>
+                .
+              </p>
+
+              {connectError && (
+                <div className="form-error modal-error">
+                  {connectError}
+                </div>
+              )}
+
+              {challengesError && (
+                <div className="form-error modal-error">
+                  {challengesError}
+                </div>
+              )}
+
+              <label className="modal-field">
+                Related challenge
+
+                <select
+                  value={
+                    selectedConnectChallengeId
+                  }
+                  onChange={(event) =>
+                    setSelectedConnectChallengeId(
+                      event.target.value,
+                    )
+                  }
+                  disabled={
+                    challengesLoading
+                  }
+                >
+                  <option value="">
+                    {challengesLoading
+                      ? 'Loading challenges…'
+                      : 'General connection'}
                   </option>
-                ))}
-              </select>
-            </label>
 
-            <label className="modal-field">
-              Message
-              <textarea
-                rows={7}
-                value={connectMessage}
-                onChange={(event) => setConnectMessage(event.target.value)}
-                placeholder="Write a concise message…"
-              />
-            </label>
+                  {challenges.map(
+                    (challenge) => (
+                      <option
+                        key={
+                          challenge.challenge_id
+                        }
+                        value={
+                          challenge.challenge_id
+                        }
+                      >
+                        {
+                          challenge.challenge_title
+                        }
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
 
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="outline-action"
-                onClick={() => setConnectModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="dark-pill-button"
-                onClick={() => void sendConnectionRequest()}
-                disabled={sendingRequest || !connectMessage.trim()}
-              >
-                {sendingRequest ? 'Sending…' : 'Send request →'}
-              </button>
+              <label className="modal-field">
+                Message
+
+                <textarea
+                  rows={7}
+                  value={connectMessage}
+                  onChange={(event) =>
+                    setConnectMessage(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Write a concise message…"
+                />
+              </label>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="outline-action"
+                  onClick={() =>
+                    setConnectModalOpen(
+                      false,
+                    )
+                  }
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="dark-pill-button"
+                  onClick={() =>
+                    void sendConnectionRequest()
+                  }
+                  disabled={
+                    sendingRequest ||
+                    !connectMessage.trim()
+                  }
+                >
+                  {sendingRequest
+                    ? 'Sending…'
+                    : 'Send request →'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {connectSuccess && (
         <div className="modal-overlay">
           <div className="success-modal-new">
-            <span className="success-mark">✓</span>
-            <span className="section-kicker">CONNECTION SENT</span>
-            <h2>Request sent.</h2>
+            <span className="success-mark">
+              ✓
+            </span>
+
+            <span className="section-kicker">
+              CONNECTION SENT
+            </span>
+
+            <h2>
+              Request sent.
+            </h2>
+
             <p>
-              Your connection request has been sent to{' '}
-              <strong>{connectSuccess}</strong>.
+              Your connection request has been
+              sent to{' '}
+              <strong>
+                {connectSuccess}
+              </strong>
+              .
             </p>
+
             <button
               type="button"
               className="dark-pill-button"
-              onClick={() => setConnectSuccess(null)}
+              onClick={() =>
+                setConnectSuccess(null)
+              }
             >
               Done →
             </button>
@@ -3212,44 +4086,105 @@ const searchCandidates = useCallback(
         </div>
       )}
 
-      <footer className="site-footer" id="guide">
+      <footer
+        className="site-footer"
+        id="guide"
+      >
         <div className="footer-top">
           <div>
             <div className="brand-lockup">
-              <span className="brand-mark">H</span>
-              <span className="brand-name">hirezone</span>
+              <span className="brand-mark">
+                H
+              </span>
+
+              <span className="brand-name">
+                hirezone
+              </span>
             </div>
+
             <p>
-              A proof-first talent discovery workspace for industry recruiters.
+              A proof-first talent discovery
+              workspace for industry recruiters.
             </p>
           </div>
+
           <div className="footer-links">
             <div>
-              <strong>Product</strong>
-              <span>Discover talent</span>
-              <span>Proof of work</span>
-              <span>Challenges</span>
-              <span>Connections</span>
+              <strong>
+                Product
+              </strong>
+
+              <span>
+                Discover talent
+              </span>
+
+              <span>
+                Proof of work
+              </span>
+
+              <span>
+                Challenges
+              </span>
+
+              <span>
+                Connections
+              </span>
             </div>
+
             <div>
-              <strong>Recruiters</strong>
-              <span>Search profiles</span>
-              <span>Set thresholds</span>
-              <span>Review evidence</span>
-              <span>Send requests</span>
+              <strong>
+                Recruiters
+              </strong>
+
+              <span>
+                Search profiles
+              </span>
+
+              <span>
+                Set thresholds
+              </span>
+
+              <span>
+                Review evidence
+              </span>
+
+              <span>
+                Send requests
+              </span>
             </div>
+
             <div>
-              <strong>Workspace</strong>
-              <span>Company account</span>
-              <span>My connections</span>
-              <span>Preferences</span>
-              <span>Sign out</span>
+              <strong>
+                Workspace
+              </strong>
+
+              <span>
+                Company account
+              </span>
+
+              <span>
+                My connections
+              </span>
+
+              <span>
+                Preferences
+              </span>
+
+              <span>
+                Sign out
+              </span>
             </div>
           </div>
         </div>
+
         <div className="footer-bottom">
-          <span>© 2026 Hirezone</span>
-          <span>Industry Talent Discovery Portal</span>
+          <span>
+            © 2026 Hirezone
+          </span>
+
+          <span>
+            Industry Talent Discovery Portal
+          </span>
         </div>
       </footer>
     </div>
