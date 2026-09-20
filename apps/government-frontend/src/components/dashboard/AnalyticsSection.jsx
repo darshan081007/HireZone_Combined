@@ -15,7 +15,7 @@ import {
 import {
   getTopStudentSkills,
   getTopDemandSkills
-} from "../../services/governmentService";
+} from "../../services/governmentApi";
 
 const AnalyticsSection = () => {
 

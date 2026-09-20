@@ -1,3 +1,5 @@
+{/*
+  
 import { useEffect, useState } from "react";
 import { BarChart3, RefreshCw, TrendingUp, Users } from "lucide-react";
 
@@ -8,6 +10,7 @@ import MetricCard from "../components/cards/MetricCard";
 import Badge from "../components/ui/Badge";
 import Tooltip from "../components/ui/Tooltip";
 import { LoadingState, ErrorState, EmptyState } from "../components/ui/States";
+import { getSkillGap } from "../services/governmentApi";
 
 const API_URL = "http://localhost:8000";
 
@@ -21,19 +24,18 @@ function SkillGap() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `${API_URL}/api/government/skill-gap-analysis`
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch skill-gap data");
-      }
 
-      const data = await response.json();
+      const response = await getSkillGap();
+
+
+      const data = response.data;
 
       const result = Array.isArray(data)
         ? data
         : data.skill_gaps || data.data || [];
+
+setSkillGaps(result);
 
       setSkillGaps(result);
     } catch (err) {
@@ -96,7 +98,7 @@ function SkillGap() {
         icon={BarChart3}
       />
 
-      {/* Summary cards */}
+      {/* Summary cards */}{/*
       <section className="mb-8 grid gap-5 md:grid-cols-3">
         <MetricCard
           icon={Users}
@@ -124,7 +126,7 @@ function SkillGap() {
         />
       </section>
 
-      {/* Skill gap table */}
+      {/* Skill gap table */}{/*
       <section className="card-hover-elevation surface-card rounded-2xl border border-[#D5E8DA] bg-white p-5 sm:p-7">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -207,6 +209,60 @@ function SkillGap() {
           </div>
         )}
       </section>
+    </DashboardLayout>
+  );
+}
+
+export default SkillGap;
+
+
+*/}
+
+
+import DashboardLayout from "../components/layout/DashboardLayout";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+function SkillGap() {
+  const data = [
+    { skill: "AI", gap: 85 },
+    { skill: "Cloud", gap: 70 },
+    { skill: "Cybersecurity", gap: 65 },
+    { skill: "Data Science", gap: 60 },
+    { skill: "IoT", gap: 45 },
+  ];
+
+  return (
+    <DashboardLayout>
+      <div className="surface-card rounded-2xl bg-white p-6">
+        <h1 className="mb-6 text-2xl font-bold text-[#176B3A]">
+          Skill Gap Analysis
+        </h1>
+
+        <div style={{ width: "100%", height: 400 }}>
+          <ResponsiveContainer>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="skill" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="gap"
+                stroke="#176B3A"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
