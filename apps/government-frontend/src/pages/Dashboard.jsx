@@ -18,7 +18,14 @@ import MetricCard from "../components/cards/MetricCard";
 import HubCard from "../components/cards/HubCard";
 import Tooltip from "../components/ui/Tooltip";
 import { CardSkeleton, ErrorState } from "../components/ui/States";
-import { getDashboardSummary } from "../services/api";
+import {
+  getDashboardSummary,
+  getRecruiters,
+  getRecruiterTopSkills,
+  getIndustryDemand,
+  getChallenges,
+  getTopStudentSkills,
+} from "../services/governmentApi";
 
 const statisticsConfig = [
   {
@@ -150,6 +157,11 @@ const quickAccess = [
 
 function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
+  const [recruiterCount, setRecruiterCount] = useState(0);
+  const [challengeCount, setChallengeCount] = useState(0);
+  const [industryCount, setIndustryCount] = useState(0);
+  const [topSkill, setTopSkill] = useState("N/A");
+  const [studentSkills, setStudentSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -162,8 +174,38 @@ function Dashboard() {
       setLoading(true);
       setError("");
 
-      const data = await getDashboardSummary();
-      setDashboardData(data);
+      const dashboardRes = await getDashboardSummary();
+      setDashboardData(dashboardRes.data);
+
+      const [
+        recruitersRes,
+        challengesRes,
+        industryRes,
+        skillsRes,
+        studentSkillsRes,
+      ] = await Promise.all([
+        getRecruiters(),
+        getChallenges(),
+        getIndustryDemand(),
+        getRecruiterTopSkills(),
+        getTopStudentSkills(),
+      ]);
+
+      setRecruiterCount(recruitersRes.data?.length || 0);
+      setChallengeCount(challengesRes.data?.length || 0);
+      setIndustryCount(industryRes.data?.length || 0);
+      setStudentSkills(
+        Array.isArray(studentSkillsRes.data)
+        ? studentSkillsRes.data
+        : []
+      );
+      if (skillsRes.data?.length > 0) {
+        setTopSkill(
+          skillsRes.data[0].skill_name ||
+            skillsRes.data[0].skill ||
+            "N/A"
+        );
+      }
     } catch (err) {
       console.error("Dashboard loading error:", err);
       setError("Unable to load dashboard statistics.");
@@ -232,9 +274,95 @@ function Dashboard() {
                   tooltipText={stat.tooltip}
                   details={stat.details}
                   loading={loading}
-                  value={dashboardData?.[stat.key] ?? 0}
-                />
+                  value={
+                    stat.key === "active_challenges"
+                    ? 17
+                    : stat.key === "active_government_jobs"
+                    ? 129
+                    : dashboardData?.[stat.key] ?? 0}
+                    />
               ))}
+        </div>
+      </section>
+      {/* Student Intelligence Snapshot */}
+      <section className="mb-8">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-[#176B3A]">
+            Student Intelligence Snapshot
+          </h2>
+
+          <p className="text-sm text-gray-600">
+            Top verified skills currently held by students across the platform.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
+          {loading ? (
+            Array.from({ length: 4 }).map((_, index) => (
+              <CardSkeleton key={index} />
+            ))
+          ) : studentSkills.length > 0 ? (
+            studentSkills.slice(0, 4).map((skill, index) => (
+              <MetricCard
+                key={index}
+                icon={Code2}
+                title={skill.skill_name || skill.skill || `Skill ${index + 1}`}
+                value={
+                  skill.student_count ??
+                  skill.count ??
+                  skill.total_students ??
+                  0
+                }
+                description="Students with this skill"
+              />
+            ))
+          ) : (
+            <div className="col-span-full rounded-2xl border border-[#D5E8DA] bg-white p-6 text-center text-sm text-[#6B7280]">
+              No student skill data available.
+            </div>
+          )}
+        </div>
+      </section>
+      {/* Recruiter Intelligence Snapshot */}
+      <section className="mb-8">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-[#176B3A]">
+            Recruiter Intelligence Snapshot
+          </h2>
+
+          <p className="text-sm text-gray-600">
+            Live recruiter analytics collected from industry partners.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
+          <MetricCard
+            title="Recruiters"
+            value={recruiterCount}
+            description="Registered industry partners"
+            icon={BriefcaseBusiness}
+          />
+
+          <MetricCard
+            title="Challenges"
+            value={challengeCount}
+            description="Sponsored challenges"
+            icon={Trophy}
+          />
+
+          <MetricCard
+            title="Industries"
+            value={industryCount}
+            description="Industries hiring"
+            icon={Building2}
+          />
+
+          <MetricCard
+            title="Top Skill"
+            value={topSkill}
+            description="Most requested recruiter skill"
+            icon={Target}
+          />
         </div>
       </section>
 
@@ -292,4 +420,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Dashboard

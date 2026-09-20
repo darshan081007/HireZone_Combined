@@ -6,7 +6,7 @@ import PageHeader from "../components/ui/PageHeader";
 import Button from "../components/ui/Button";
 import Tooltip from "../components/ui/Tooltip";
 import { EmptyState } from "../components/ui/States";
-import { getStudents } from "../services/governmentService";
+import { getStudents } from "../services/governmentApi";
 
 const Students = () => {
   const [students, setStudents] = useState([]);

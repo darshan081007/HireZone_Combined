@@ -10,7 +10,10 @@ import SectorDemandChart from "../components/charts/SectorDemandChart";
 import SkillGapChart from "../components/charts/SkillGapChart";
 import { LoadingState } from "../components/ui/States";
 
-import { getHighestSkilledSectors, getSkillGap } from "../services/governmentService";
+import {
+  getHighestSkilledSectors,
+  getSkillGap,
+} from "../services/governmentApi";
 
 const Analytics = () => {
   const [sectors, setSectors] = useState([]);
